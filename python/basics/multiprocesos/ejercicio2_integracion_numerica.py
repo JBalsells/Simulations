@@ -1,42 +1,19 @@
 """
 Ejercicio 2 — Multiprocesos: Integración numérica de funciones físicas
 =======================================================================
-Conceptos: multiprocessing.Pool, Pool.starmap, división del intervalo,
-           regla del trapecio, combinación de resultados.
+Dividimos el intervalo [a, b] entre P procesos. Cada uno integra
+su tramo con la regla del trapecio y devuelve el valor parcial.
+Al final sumamos los tramos.
 
-Contexto físico
----------------
-Muchas magnitudes físicas se calculan como integrales definidas.
-Ejemplos que resolveremos aquí:
+Funciones que integramos:
+  1. Trabajo del resorte: W = ∫ k·x dx  (analítico: ½kx²)
+  2. Densidad espectral de Planck: u(ν) en un rango de frecuencias
+  3. Longitud de arco de un proyectil: L = ∫ √(1 + (dy/dx)²) dx
 
-  1. Trabajo de una fuerza variable:
-       W = ∫ F(x) dx   donde  F(x) = k·x  (resorte de Hooke)
-       Solución analítica: W = ½ k x²
-
-  2. Energía irradiada (distribución de Planck, aprox. numérica):
-       u(ν) = (8π h / c³) · ν³ / (e^{hν/kT} − 1)
-       Integramos en un rango finito de frecuencias.
-
-  3. Longitud de arco de una trayectoria parabólica (proyectil):
-       y(x) = x·tan(θ) − g·x²/(2v₀²cos²θ)
-       L = ∫ √(1 + (dy/dx)²) dx
-
-Método numérico: regla del trapecio compuesta.
-  ∫_a^b f(x) dx ≈ h/2 · [f(a) + 2·f(x₁) + 2·f(x₂) + ... + f(b)]
-  donde h = (b−a)/N es el ancho de cada subintervalo.
-
-Estrategia paralela
--------------------
-Dividimos el intervalo [a, b] en 'P' sub-intervalos (uno por proceso).
-Cada proceso integra su tramo y devuelve el valor parcial.
-El resultado final es la suma de todos los tramos.
-
-Tareas para el estudiante
--------------------------
+Para practicar:
 1. Aumenta N_SUBINTERVALOS a 10_000_000. ¿Mejora la precisión?
-2. Agrega una cuarta función (p. ej. campo gravitacional).
-3. Compara el speedup para N_SUBINTERVALOS pequeños vs. grandes.
-   ¿Cuándo vale la pena usar múltiples procesos?
+2. Agrega una cuarta función (p.ej. campo gravitacional).
+3. ¿Cuándo vale la pena usar múltiples procesos vs. uno solo?
 """
 
 import math
@@ -45,17 +22,13 @@ import time
 from typing import Callable
 
 
-# ---------------------------------------------------------------------------
-# Parámetros
-# ---------------------------------------------------------------------------
+# parámetros de la simulación
 
 N_SUBINTERVALOS = 2_000_000   # subintervalos de la regla del trapecio
 N_PROCESOS      = 4
 
 
-# ---------------------------------------------------------------------------
-# Funciones físicas a integrar
-# ---------------------------------------------------------------------------
+# las tres funciones físicas que vamos a integrar
 
 # 1. Fuerza de un resorte (Ley de Hooke): F(x) = k·x
 K_RESORTE = 50.0  # N/m
@@ -90,9 +63,7 @@ def longitud_arco_proyectil(x: float) -> float:
     return math.sqrt(1 + dydx**2)
 
 
-# ---------------------------------------------------------------------------
-# Worker: integra f en el subintervalo [a_local, b_local]
-# ---------------------------------------------------------------------------
+# worker: aplica la regla del trapecio en su tramo del intervalo
 
 def integrar_tramo(args: tuple) -> float:
     """Aplica la regla del trapecio en un subintervalo.
@@ -118,9 +89,7 @@ def integrar_tramo(args: tuple) -> float:
     return total * h
 
 
-# ---------------------------------------------------------------------------
-# Integración secuencial y paralela
-# ---------------------------------------------------------------------------
+# corre ambas versiones y devuelve los tiempos para comparar
 
 def integrar(nombre: str, a: float, b: float, n: int, n_proc: int) -> tuple:
     """Integra la función 'nombre' en [a, b] con n subintervalos y n_proc procesos."""
@@ -149,9 +118,7 @@ def integrar(nombre: str, a: float, b: float, n: int, n_proc: int) -> tuple:
     return resultado_seq, t_seq, resultado_par, t_par
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 65)

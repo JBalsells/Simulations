@@ -1,33 +1,26 @@
 """
 Herencia — Ejemplo 2: Jerarquía de cuerpos celestes
 ====================================================
-Conceptos OOP: cadena de herencia (3 niveles), override, super(),
-               métodos de clase, atributos de clase.
+Un planeta hereda todo lo que tiene un cuerpo celeste y añade
+lunas y período orbital. Un planeta habitable hereda todo lo
+del planeta y añade temperatura y agua. Tres niveles en cadena.
 
-Árbol de herencia
------------------
     CuerpoCeleste          (masa, posición, velocidad)
     ├── Planeta            (lunas, periodo orbital)
     │   └── PlanetaHabitable (temperatura, atmósfera)
     └── Estrella           (temperatura, luminosidad)
         └── NanaBranca     (masa límite Chandrasekhar)
 
-Tareas para el estudiante
--------------------------
-1. Agrega la clase `Cometa` que herede de `CuerpoCeleste`
-   y tenga excentricidad orbital.
-2. Sobrescribe `__repr__` en cada nivel y observa cómo super()
-   encadena las representaciones.
-3. ¿Qué ventaja tiene usar `super().__init__()` en lugar de
-   llamar al padre por su nombre directamente?
+Para practicar:
+1. Agrega Cometa que herede de CuerpoCeleste y tenga excentricidad orbital.
+2. Sobrescribe __repr__ en cada nivel y observa cómo super() encadena las representaciones.
+3. ¿Qué ventaja tiene usar super().__init__() en lugar de llamar al padre por su nombre?
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Nivel 1 — Clase base
-# ---------------------------------------------------------------------------
+# todo objeto astronómico tiene masa, posición y velocidad
 
 class CuerpoCeleste:
     """Objeto astronómico con masa, posición heliocéntrica y velocidad."""
@@ -54,9 +47,7 @@ class CuerpoCeleste:
                 f"m={self.masa:.2e} kg, d={self.distancia_al_sol:.2e} m)")
 
 
-# ---------------------------------------------------------------------------
-# Nivel 2a — Planeta
-# ---------------------------------------------------------------------------
+# un planeta agrega lunas, anillos y período orbital
 
 MASA_SOL = 1.989e30  # kg
 
@@ -88,9 +79,7 @@ class Planeta(CuerpoCeleste):
                 f"T={self.periodo_orbital_anios():.2f} años)")
 
 
-# ---------------------------------------------------------------------------
-# Nivel 3 — Planeta habitable (hereda de Planeta)
-# ---------------------------------------------------------------------------
+# añade temperatura promedio y presencia de agua para evaluar habitabilidad
 
 class PlanetaHabitable(Planeta):
     """Planeta dentro de la zona de habitabilidad de su estrella."""
@@ -118,9 +107,7 @@ class PlanetaHabitable(Planeta):
                 f"IH={self.indice_habitabilidad():.2f})")
 
 
-# ---------------------------------------------------------------------------
-# Nivel 2b — Estrella
-# ---------------------------------------------------------------------------
+# una estrella tiene temperatura superficial y luminosidad propias
 
 class Estrella(CuerpoCeleste):
     """Estrella con luminosidad y temperatura superficial."""
@@ -157,9 +144,7 @@ class Estrella(CuerpoCeleste):
                 f"L={self.luminosidad():.3e} W)")
 
 
-# ---------------------------------------------------------------------------
-# Nivel 3 — Nana Blanca (hereda de Estrella)
-# ---------------------------------------------------------------------------
+# remanente estelar: muy denso, ya no fusiona hidrógeno
 
 class NanaBranca(Estrella):
     """Remanente estelar denso y compacto; no fusiona más hidrógeno."""
@@ -185,9 +170,7 @@ class NanaBranca(Estrella):
                 f"ρ={self.densidad_media():.2e} kg/m³, {estable})")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     # --- Planetas del sistema solar ---

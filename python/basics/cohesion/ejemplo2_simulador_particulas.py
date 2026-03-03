@@ -1,48 +1,37 @@
 """
-Cohesión — Ejemplo 2: Simulador de partículas con alta cohesión
-===============================================================
-Conceptos OOP: principio SRP aplicado a simulación numérica,
-               separación entre física, integración y observación.
+Cohesión — Ejemplo 2: Simulador de partículas
+==============================================
+Cada clase tiene un único trabajo bien definido:
+  - Particula: guarda posición, velocidad y masa. Nada más.
+  - CalculadorFuerzas: calcula la gravedad entre partículas.
+  - IntegradorVerlet: avanza el tiempo un paso.
+  - Monitor: mide energía, momento, centro de masa.
 
-Idea central
-------------
-Un simulador de N-cuerpos bien diseñado separa claramente:
-  1. Estado físico (posiciones, velocidades, masas)
-  2. Cálculo de fuerzas (física)
-  3. Integrador numérico (matemáticas)
-  4. Observables (qué medimos)
+Si quieres cambiar la física, solo tocas CalculadorFuerzas.
+Si quieres otro algoritmo, solo tocas el integrador.
+El resto no se entera.
 
-Cada clase tiene exactamente una razón para cambiar:
-  - Si cambia la física → sólo modifica `CalculadorFuerzas`
-  - Si cambia el algoritmo → sólo modifica `IntegradorVerlet`
-  - Si añadimos métricas → sólo modifica `Monitor`
-
-Tareas para el estudiante
--------------------------
-1. Implementa `IntegradorRK4` (Runge-Kutta 4) como alternativa
-   a Verlet. ¿Necesitas tocar otras clases?
-2. Agrega en `Monitor` el cálculo del momento de inercia.
-3. ¿Qué cambiarías si quisieras simular cargas eléctricas
-   en lugar de masas gravitacionales?
+Para practicar:
+1. Implementa IntegradorRK4 como alternativa. ¿Necesitas tocar otras clases?
+2. Agrega en Monitor el cálculo del momento de inercia.
+3. ¿Qué cambiarías para simular cargas eléctricas en vez de masas?
 """
 
 import math
 import random
 
 
-# ---------------------------------------------------------------------------
-# 1. Estado físico — sólo datos
-# ---------------------------------------------------------------------------
+# 1. Solo datos: posición, velocidad, masa y la fuerza que actúa sobre ella
 
 class Particula:
-    """Almacena el estado cinemático de una partícula. SIN lógica física."""
+    """Guarda el estado de una partícula. No calcula nada por sí sola."""
 
     def __init__(self, masa: float, x: float, y: float,
                  vx: float = 0.0, vy: float = 0.0):
         self.masa = masa
         self.x  = x;  self.y  = y
         self.vx = vx; self.vy = vy
-        self.fx = 0.0; self.fy = 0.0   # fuerzas actuales
+        self.fx = 0.0; self.fy = 0.0   # fuerza resultante en este instante
 
     @property
     def velocidad(self) -> float:
@@ -61,15 +50,12 @@ class Particula:
                 f"v={self.velocidad:.3f})")
 
 
-# ---------------------------------------------------------------------------
-# 2. Física — sólo calcula fuerzas
-# ---------------------------------------------------------------------------
+# 2. Solo física: sabe calcular la gravedad entre partículas, nada más
 
 class CalculadorFuerzas:
-    """Calcula las fuerzas gravitacionales entre partículas.
+    """Calcula la fuerza gravitacional entre cada par de partículas.
 
-    SÓLO responsabilidad: física de las fuerzas.
-    No integra ecuaciones, no almacena estado.
+    No sabe de posiciones futuras ni de tiempo. Solo física del instante actual.
     """
 
     G     = 6.674e-11   # constante gravitacional
@@ -81,7 +67,7 @@ class CalculadorFuerzas:
         for p in particulas:
             p.fx = p.fy = 0.0
 
-        # Par a par (Newton: F_ij = -F_ji)
+        # calculamos cada par una sola vez y aplicamos la 3a ley de Newton
         n = len(particulas)
         for i in range(n):
             for j in range(i + 1, n):
@@ -96,15 +82,12 @@ class CalculadorFuerzas:
                 pj.fx -= fx;  pj.fy -= fy
 
 
-# ---------------------------------------------------------------------------
-# 3. Integración — sólo avanza el tiempo (Störmer-Verlet)
-# ---------------------------------------------------------------------------
+# 3. Solo matemáticas: avanza posiciones y velocidades un paso de tiempo
 
 class IntegradorVerlet:
-    """Integra las ecuaciones de movimiento con el método de Verlet.
+    """Avanza el sistema un paso dt usando el método de Verlet.
 
-    SÓLO responsabilidad: avanzar posiciones y velocidades.
-    No conoce qué tipo de fuerzas actúan.
+    No sabe qué tipo de fuerzas hay, solo recibe una función que las calcula.
     """
 
     def __init__(self, dt: float):
@@ -112,27 +95,22 @@ class IntegradorVerlet:
 
     def paso(self, particulas: list[Particula],
              calcular_fuerzas_fn) -> None:
-        """Un paso de integración.
-
-        Verlet de velocidades:
-            x(t+dt) = x(t) + v(t)·dt + ½a(t)·dt²
-            v(t+dt) = v(t) + ½[a(t) + a(t+dt)]·dt
-        """
+        """Avanza un paso: primero posiciones, luego recalcula fuerzas, luego velocidades."""
         dt = self.dt
 
-        # Guardar aceleración actual
+        # guardamos la aceleración antes de mover
         ax_old = [p.fx / p.masa for p in particulas]
         ay_old = [p.fy / p.masa for p in particulas]
 
-        # Actualizar posiciones
+        # movemos las partículas con la aceleración actual
         for i, p in enumerate(particulas):
             p.x += p.vx * dt + 0.5 * ax_old[i] * dt**2
             p.y += p.vy * dt + 0.5 * ay_old[i] * dt**2
 
-        # Recalcular fuerzas con nuevas posiciones
+        # con las nuevas posiciones, recalculamos las fuerzas
         calcular_fuerzas_fn(particulas)
 
-        # Actualizar velocidades
+        # ahora sí actualizamos velocidades con el promedio de aceleraciones
         for i, p in enumerate(particulas):
             ax_new = p.fx / p.masa
             ay_new = p.fy / p.masa
@@ -140,15 +118,12 @@ class IntegradorVerlet:
             p.vy += 0.5 * (ay_old[i] + ay_new) * dt
 
 
-# ---------------------------------------------------------------------------
-# 4. Monitor — sólo mide observables
-# ---------------------------------------------------------------------------
+# 4. Solo medición: energía, momento lineal, centro de masa
 
 class Monitor:
-    """Calcula y registra observables termodinámicos del sistema.
+    """Observa el sistema y calcula sus propiedades globales.
 
-    SÓLO responsabilidad: métricas físicas del conjunto de partículas.
-    No integra, no calcula fuerzas, no almacena configuraciones.
+    No mueve partículas ni calcula fuerzas. Solo mide.
     """
 
     G = 6.674e-11
@@ -157,7 +132,7 @@ class Monitor:
         return sum(p.energia_cinetica() for p in particulas)
 
     def energia_potencial(self, particulas: list[Particula]) -> float:
-        """U = − G Σ_{i<j} m_i m_j / r_ij."""
+        """Energía potencial gravitacional total del sistema (negativa siempre)."""
         U = 0.0
         n = len(particulas)
         for i in range(n):
@@ -183,16 +158,14 @@ class Monitor:
         return cx, cy
 
     def temperatura_cin(self, particulas: list[Particula]) -> float:
-        """T = 2·Ec / (N·k_B) — temperatura cinética 2D."""
+        """Temperatura como medida del movimiento promedio de las partículas (en 2D)."""
         k_B = 1.38e-23
         Ec  = self.energia_cinetica_total(particulas)
         N   = len(particulas)
         return 2 * Ec / (N * k_B) if N > 0 else 0.0
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# Instanciamos cada clase y las conectamos manualmente
 
 if __name__ == "__main__":
     random.seed(42)
@@ -209,12 +182,12 @@ if __name__ == "__main__":
         Particula(masa=1e25, x= 0.0, y=-1e9,  vx=-1e3, vy=0.0),
     ]
 
-    # Instanciar las tres clases con responsabilidad única
+    # cada clase hace exactamente una cosa
     fuerzas   = CalculadorFuerzas()
     integrador = IntegradorVerlet(dt=DT)
     monitor   = Monitor()
 
-    # Calcular fuerzas iniciales
+    # antes del primer paso necesitamos calcular las fuerzas iniciales
     fuerzas.calcular_y_asignar(particulas)
 
     print("=" * 58)

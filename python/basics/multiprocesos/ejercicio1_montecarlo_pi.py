@@ -1,40 +1,19 @@
 """
 Ejercicio 1 — Multiprocesos: Estimación de π por Monte Carlo
 =============================================================
-Conceptos: multiprocessing.Pool, Pool.map, división de trabajo,
-           combinación de resultados entre procesos.
+Tiramos puntos aleatorios en un cuadrado y contamos cuántos caen
+dentro del círculo inscrito. La proporción nos da π/4.
 
-Contexto físico
----------------
-El método de Monte Carlo usa números aleatorios para resolver problemas
-deterministas. Aquí estimamos π aprovechando la relación geométrica
-entre un cuadrado de lado 2 y el círculo inscrito de radio 1:
+      Área círculo / Área cuadrado = π/4
 
-      Área del círculo    π · 1²   π
-      ─────────────────  = ─────  = ─
-      Área del cuadrado    2 · 2    4
+Con múltiples procesos repartimos los puntos entre núcleos; cada
+proceso trabaja en su propia memoria (sin GIL) y al final sumamos.
+El error escala como 1/√N — para ganar un decimal necesitas 100× más puntos.
 
-Algoritmo:
-  1. Generar N puntos (x, y) con x, y ∈ [−1, 1].
-  2. Contar cuántos caen dentro del círculo: x² + y² ≤ 1.
-  3. π ≈ 4 · (puntos_dentro / N_total).
-
-Con múltiples procesos repartimos los N puntos entre los núcleos
-disponibles, cada proceso trabaja en su propio espacio de memoria
-(sin GIL), y al final sumamos los conteos parciales.
-
-Error esperado
---------------
-El error estadístico del método de Monte Carlo escala como 1/√N,
-así que para ganar un decimal extra de precisión necesitamos
-100 veces más puntos.
-
-Tareas para el estudiante
--------------------------
+Para practicar:
 1. Ejecuta con N_PUNTOS = 10_000_000. ¿Cuántos decimales correctos?
-2. Compara el tiempo con N_PROCESOS = 1 vs. N_PROCESOS = 4.
-3. ¿Por qué con threading en Python esto NO daría speedup,
-   pero con multiprocessing SÍ? (pista: GIL)
+2. Compara el tiempo con N_PROCESOS = 1 vs. 4.
+3. ¿Por qué con threading no habría speedup pero con multiprocessing sí?
 """
 
 import math
@@ -43,17 +22,13 @@ import random
 import time
 
 
-# ---------------------------------------------------------------------------
-# Parámetros
-# ---------------------------------------------------------------------------
+# parámetros de la simulación
 
 N_PUNTOS   = 4_000_000   # total de puntos aleatorios
 N_PROCESOS = 4            # número de procesos worker
 
 
-# ---------------------------------------------------------------------------
-# Función worker: cuenta puntos dentro del círculo
-# ---------------------------------------------------------------------------
+# worker: recibe n puntos y una semilla, devuelve cuántos cayeron dentro
 
 def contar_dentro(args: tuple) -> int:
     """Genera 'n' puntos aleatorios y cuenta cuántos caen en el círculo.
@@ -77,9 +52,7 @@ def contar_dentro(args: tuple) -> int:
     return dentro
 
 
-# ---------------------------------------------------------------------------
-# Estimación secuencial (línea de base)
-# ---------------------------------------------------------------------------
+# versión secuencial para comparar tiempos
 
 def estimar_secuencial(n_total: int) -> tuple:
     inicio = time.perf_counter()
@@ -88,9 +61,7 @@ def estimar_secuencial(n_total: int) -> tuple:
     return pi_est, time.perf_counter() - inicio
 
 
-# ---------------------------------------------------------------------------
-# Estimación con múltiples procesos
-# ---------------------------------------------------------------------------
+# versión paralela: reparte los puntos entre procesos y suma los conteos
 
 def estimar_paralelo(n_total: int, n_procesos: int) -> tuple:
     # Repartir los puntos entre procesos (puede haber residuo)
@@ -112,9 +83,7 @@ def estimar_paralelo(n_total: int, n_procesos: int) -> tuple:
     return pi_est, elapsed
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 60)

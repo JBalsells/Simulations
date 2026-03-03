@@ -1,27 +1,20 @@
 """
 Abstracción — Ejemplo 2: Sensores físicos con interfaz abstracta
 ================================================================
-Conceptos OOP: ABC, @abstractmethod, @property abstracta,
-               método de plantilla (template method pattern).
+Todos los sensores hacen lo mismo en el mismo orden:
+inicializar → leer valor crudo → calibrar → validar → reportar.
 
-Idea central
-------------
-Todos los sensores comparten el ciclo de vida:
-    inicializar() → leer_crudo() → calibrar() → validar() → reportar()
+El método medir() está en la clase base y orquesta esos pasos.
+Cada sensor concreto solo se preocupa por sus propios detalles
+(cómo leer, qué corrección aplicar, qué rango es válido).
 
-El método `medir()` (plantilla) está definido en la clase base
-y llama en orden a los pasos anteriores. Cada subclase sólo
-necesita implementar los pasos concretos (leer_crudo, calibrar,
-validar), no el flujo general.
+Esto se llama patrón Template Method: el "molde" está arriba,
+los detalles abajo.
 
-Esto es el patrón Template Method: la lógica general vive en
-la abstracción, los detalles específicos en las subclases.
-
-Tareas para el estudiante
--------------------------
-1. Agrega `SensorCampoMagnetico` que mida en Teslas.
-2. Modifica `medir()` para registrar el tiempo de cada lectura.
-3. Implementa un `SensorCompuesto` que promedia dos sensores.
+Para practicar:
+1. Agrega SensorCampoMagnetico que mida en Teslas.
+2. Modifica medir() para registrar el tiempo de cada lectura.
+3. Crea un SensorCompuesto que promedia dos sensores distintos.
 """
 
 from abc import ABC, abstractmethod
@@ -29,24 +22,17 @@ import random
 import math
 
 
-# ---------------------------------------------------------------------------
-# Clase base abstracta
-# ---------------------------------------------------------------------------
+# La clase base define el flujo completo, las subclases solo llenan los huecos
 
 class Sensor(ABC):
-    """Interfaz abstracta para cualquier sensor físico.
-
-    Patrón Template Method:
-        medir() es el método plantilla que orquesta el ciclo completo.
-        Las subclases implementan los pasos concretos.
-    """
+    """Base para cualquier sensor. Define el ciclo completo de medición."""
 
     def __init__(self, id_sensor: str):
         self.id_sensor    = id_sensor
         self._inicializado = False
         self._n_lecturas  = 0
 
-    # ---- Pasos abstractos (deben implementarse en subclases) ----
+    # cada subclase tiene que definir estos tres pasos
 
     @property
     @abstractmethod
@@ -70,10 +56,10 @@ class Sensor(ABC):
     def _validar(self, valor_calibrado: float) -> bool:
         """Devuelve True si el valor está en el rango físico válido."""
 
-    # ---- Método plantilla (no debe sobreescribirse) ----
+    # este método no se toca en las subclases, solo los pasos que llama
 
     def medir(self) -> float | None:
-        """Ciclo completo de medición. Orquesta todos los pasos."""
+        """Lee el sensor de principio a fin. Devuelve None si el valor no es válido."""
         if not self._inicializado:
             self._inicializar()
 
@@ -90,7 +76,7 @@ class Sensor(ABC):
         return calibrado
 
     def _inicializar(self) -> None:
-        """Paso de inicialización genérico."""
+        """Se llama automáticamente la primera vez que alguien use el sensor."""
         self._inicializado = True
         print(f"  [{self.id_sensor}] Inicializado ({self.grandeza})")
 
@@ -105,19 +91,17 @@ class Sensor(ABC):
         return f"{self.__class__.__name__}(id='{self.id_sensor}')"
 
 
-# ---------------------------------------------------------------------------
-# Implementación 1: Sensor de temperatura (termopar)
-# ---------------------------------------------------------------------------
+# Sensor 1: temperatura con error sistemático y algo de ruido
 
 class SensorTemperatura(Sensor):
-    """Simula un termopar con ruido gaussiano y offset de calibración."""
+    """Simula un termopar: tiene un offset fijo y ruido aleatorio en cada lectura."""
 
     def __init__(self, id_sensor: str, temp_real: float,
                  offset: float = 0.5, ruido: float = 0.2):
         super().__init__(id_sensor)
-        self._temp_real  = temp_real   # °C — valor "verdadero"
-        self._offset     = offset      # error sistemático
-        self._ruido      = ruido       # desviación estándar del ruido
+        self._temp_real  = temp_real   # °C — temperatura real que queremos medir
+        self._offset     = offset      # el sensor siempre mide un poco más/menos
+        self._ruido      = ruido       # variación aleatoria en cada lectura
 
     @property
     def unidad(self) -> str: return "°C"
@@ -129,24 +113,22 @@ class SensorTemperatura(Sensor):
         return self._temp_real + self._offset + random.gauss(0, self._ruido)
 
     def _calibrar(self, valor_crudo: float) -> float:
-        return valor_crudo - self._offset   # corrige el offset conocido
+        return valor_crudo - self._offset   # restamos el error que ya conocemos
 
     def _validar(self, valor: float) -> bool:
         return -273.15 <= valor <= 1_000.0   # rango físico razonable
 
 
-# ---------------------------------------------------------------------------
-# Implementación 2: Sensor de presión (piezoeléctrico)
-# ---------------------------------------------------------------------------
+# Sensor 2: presión con un pequeño error multiplicativo en la escala
 
 class SensorPresion(Sensor):
-    """Simula un sensor piezoeléctrico con ganancia imperfecta."""
+    """Simula un manómetro que sobreestima un poco (ganancia > 1)."""
 
     def __init__(self, id_sensor: str, presion_real: float,
                  ganancia: float = 1.02):
         super().__init__(id_sensor)
-        self._presion_real = presion_real   # Pa
-        self._ganancia     = ganancia       # error multiplicativo
+        self._presion_real = presion_real   # Pa — presión real del sistema
+        self._ganancia     = ganancia       # el sensor amplifica un poco la señal
 
     @property
     def unidad(self) -> str: return "Pa"
@@ -159,18 +141,16 @@ class SensorPresion(Sensor):
         return self._presion_real * self._ganancia + ruido
 
     def _calibrar(self, valor_crudo: float) -> float:
-        return valor_crudo / self._ganancia   # corrige la ganancia
+        return valor_crudo / self._ganancia   # compensamos el factor de escala
 
     def _validar(self, valor: float) -> bool:
         return 0 <= valor <= 1e8   # 0 a 100 MPa
 
 
-# ---------------------------------------------------------------------------
-# Implementación 3: Sensor de velocidad del viento (anemómetro)
-# ---------------------------------------------------------------------------
+# Sensor 3: velocidad del viento — mide rpm y las convierte a m/s
 
 class Anemometro(Sensor):
-    """Simula un anemómetro de copas con lectura en m/s."""
+    """Anemómetro de copas: convierte rpm del rotor a velocidad en m/s."""
 
     def __init__(self, id_sensor: str, velocidad_real: float):
         super().__init__(id_sensor)
@@ -183,12 +163,12 @@ class Anemometro(Sensor):
     def grandeza(self) -> str: return "velocidad del viento"
 
     def _leer_crudo(self) -> float:
-        # El anemómetro da r.p.m. que se convierte a m/s
+        # el sensor devuelve rpm con un poco de ruido
         rpm_crudo = self._v_real * 10 + random.gauss(0, 0.5)
         return rpm_crudo
 
     def _calibrar(self, valor_crudo: float) -> float:
-        return valor_crudo / 10.0   # factor de conversión rpm → m/s
+        return valor_crudo / 10.0   # convertimos rpm a m/s
 
     def _validar(self, valor: float) -> bool:
         return 0.0 <= valor <= 100.0   # m/s — límite del instrumento
@@ -203,9 +183,7 @@ class Anemometro(Sensor):
         return 12
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# Creamos varios sensores y los usamos todos igual, sin importar su tipo
 
 if __name__ == "__main__":
     print("=" * 55)
@@ -232,7 +210,7 @@ if __name__ == "__main__":
     anemo.medir()
     print(f"  Escala Beaufort: {anemo.fuerza_viento_beaufort()}")
 
-    # Confirmar que no se puede instanciar la clase abstracta
+    # esto tiene que fallar: Sensor solo es una plantilla, no se puede usar directamente
     print("\n--- Intentar instanciar Sensor directamente ---")
     try:
         Sensor("X")

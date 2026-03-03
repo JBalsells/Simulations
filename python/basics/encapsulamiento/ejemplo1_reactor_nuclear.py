@@ -1,38 +1,25 @@
 """
 Encapsulamiento — Ejemplo 1: Reactor Nuclear
 =============================================
-Conceptos OOP: atributos privados (__), atributos protegidos (_),
-               @property, setters con validación, acceso controlado.
+En un reactor, temperatura y potencia son valores críticos. Si alguien
+los modifica sin validación puede llevar el sistema a un estado imposible
+o peligroso. El encapsulamiento resuelve eso: oculta el estado interno
+y obliga a pasar por una interfaz que valida antes de cambiar nada.
 
-Idea central
-------------
-El encapsulamiento oculta el estado interno y controla el acceso
-a través de una interfaz pública segura. En un reactor nuclear,
-los valores de temperatura y potencia son críticos: modificarlos
-sin validación podría llevar a estados físicamente imposibles
-o peligrosos.
+Convenciones en Python:
+  _atributo  → protegido (convención, no forzado)
+  __atributo → privado con name-mangling (_Clase__atributo)
+  @property  → getter público
+  @x.setter  → setter con validación
 
-Convenciones en Python
-----------------------
-  _atributo   → protegido (por convención, no forzado)
-  __atributo  → privado con name-mangling (_Clase__atributo)
-  @property   → getter público que accede al atributo privado
-  @x.setter   → setter con lógica de validación
-
-Tareas para el estudiante
--------------------------
-1. Agrega un atributo `__presion` (MPa) con su propiedad y
-   setter que lance ValueError si supera 16 MPa.
-2. ¿Qué pasa si intentas acceder a `reactor.__temperatura`
-   desde fuera de la clase?
-3. Implementa un método `estado_seguro()` que devuelva True
-   sólo si temperatura, potencia y presión están en rango.
+Para practicar:
+1. Agrega __presion (MPa) con su propiedad y setter que rechace valores > 16 MPa.
+2. ¿Qué pasa si intentas acceder a reactor.__temperatura desde fuera de la clase?
+3. Implementa estado_seguro() que devuelva True solo si todo está en rango.
 """
 
 
-# ---------------------------------------------------------------------------
-# Clase principal con encapsulamiento
-# ---------------------------------------------------------------------------
+# acceso controlado: todo pasa por @property y setters con validación
 
 class ReactorNuclear:
     """Modelo simplificado de un reactor de fisión.
@@ -61,7 +48,7 @@ class ReactorNuclear:
         self._potencia_nominal = potencia_nominal_mw
         self.__historial: list[str] = []   # registro de cambios
 
-    # ---- Propiedades (getters) ----
+    # getters: permiten leer sin exponer el atributo directamente
 
     @property
     def temperatura(self) -> float:
@@ -83,7 +70,7 @@ class ReactorNuclear:
         """Historial de operaciones (sólo lectura — copia defensiva)."""
         return list(self.__historial)   # copia, no referencia
 
-    # ---- Setters con validación ----
+    # setters: validan el valor antes de almacenarlo
 
     @temperatura.setter
     def temperatura(self, valor: float) -> None:
@@ -111,7 +98,7 @@ class ReactorNuclear:
             f"| Potencia → {self.__potencia_mw:.1f} MW"
         )
 
-    # ---- Métodos públicos ----
+    # operaciones que el exterior puede invocar
 
     def arrancar(self) -> None:
         """Retira barras al 70 % para iniciar reacción en cadena."""
@@ -134,15 +121,13 @@ class ReactorNuclear:
             f"  Estado        : {'OPERATIVO' if self.__potencia_mw > 0 else 'APAGADO'}"
         )
 
-    # ---- Método privado: solo para uso interno ----
+    # método privado: solo lo usa la propia clase
 
     def __registrar(self, mensaje: str) -> None:
         self.__historial.append(mensaje)
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     reactor = ReactorNuclear("R-1 Atucha", potencia_nominal_mw=357.0)

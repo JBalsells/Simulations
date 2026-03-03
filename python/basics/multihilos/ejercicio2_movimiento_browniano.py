@@ -1,32 +1,19 @@
 """
 Ejercicio 2 — Multihilos: Movimiento Browniano de N partículas
 ==============================================================
-Conceptos: threading.Thread, threading.Lock, estado compartido,
-           condición de carrera (race condition).
-
-Contexto físico
----------------
-El movimiento Browniano describe el desplazamiento aleatorio de una
-partícula suspendida en un fluido, debido a los choques con las
-moléculas del medio (Einstein, 1905).
-
-Cada partícula sigue una caminata aleatoria 2D:
+Cada partícula hace una caminata aleatoria 2D (Einstein, 1905):
     x(t+1) = x(t) + dx   donde dx ~ N(0, σ)
-    y(t+1) = y(t) + dy   donde dy ~ N(0, σ)
 
-El desplazamiento cuadrático medio (MSD) teórico es:
-    <r²> = 4 D t          (en 2D)
-donde D = σ² / 2 es el coeficiente de difusión efectivo.
+El desplazamiento cuadrático medio (MSD) teórico en 2D es:
+    <r²> = 4 D t          donde D = σ² / 2
 
 Simulamos varias partículas en paralelo (un hilo por partícula) y
-luego comparamos el MSD numérico con la predicción teórica.
+comparamos el MSD numérico con la predicción teórica.
 
-Tareas para el estudiante
--------------------------
-1. Aumenta N_PASOS a 1000. ¿Cómo cambia el MSD final?
-2. Cambia SIGMA de 1.0 a 2.0. ¿Cómo afecta al MSD y al tiempo?
-3. Quita el Lock y ejecuta varias veces. ¿Obtienes resultados
-   distintos? ¿Por qué puede fallar sin el Lock?
+Para practicar:
+1. Aumenta N_PASOS a 1000. ¿Cómo cambia el MSD?
+2. Cambia SIGMA a 2.0. ¿Cómo afecta al MSD?
+3. Quita el Lock y ejecuta varias veces. ¿Obtienes resultados distintos?
 """
 
 import threading
@@ -34,9 +21,7 @@ import math
 import random
 
 
-# ---------------------------------------------------------------------------
-# Parámetros de la simulación
-# ---------------------------------------------------------------------------
+# parámetros de la simulación
 
 N_PARTICULAS = 8      # número de partículas (hilos)
 N_PASOS      = 500    # pasos de tiempo por partícula
@@ -44,9 +29,7 @@ SIGMA        = 1.0    # desviación estándar del desplazamiento (m)
 D_EFECTIVO   = SIGMA**2 / 2  # coeficiente de difusión (m²/paso)
 
 
-# ---------------------------------------------------------------------------
-# Tarea de un hilo: evolucionar una partícula
-# ---------------------------------------------------------------------------
+# cada hilo ejecuta esto: camina N pasos y guarda el MSD final
 
 def simular_particula(
     pid: int,
@@ -79,9 +62,7 @@ def simular_particula(
         resultados.append({"pid": pid, "x_final": x, "y_final": y, "msd": msd})
 
 
-# ---------------------------------------------------------------------------
-# Simulación con hilos
-# ---------------------------------------------------------------------------
+# lanza un hilo por partícula y espera a que todos terminen
 
 def simular_browniano(n_particulas: int, n_pasos: int, sigma: float) -> list:
     """Lanza un hilo por partícula y espera a que todos terminen."""
@@ -104,9 +85,7 @@ def simular_browniano(n_particulas: int, n_pasos: int, sigma: float) -> list:
     return resultados
 
 
-# ---------------------------------------------------------------------------
-# Análisis estadístico
-# ---------------------------------------------------------------------------
+# compara el MSD numérico con la predicción teórica
 
 def analizar_resultados(resultados: list, n_pasos: int) -> None:
     msds = [r["msd"] for r in resultados]
@@ -127,9 +106,7 @@ def analizar_resultados(resultados: list, n_pasos: int) -> None:
     print(f"  (El error disminuye al aumentar N_PARTICULAS — ley de grandes números)")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 60)

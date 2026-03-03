@@ -1,35 +1,26 @@
 """
-Composición — Ejemplo 1: Átomo compuesto de núcleo y electrones
-================================================================
-Conceptos OOP: composición ("tiene un"), ciclo de vida compartido,
-               diferencia con agregación, acceso a partes.
+Composición — Ejemplo 1: Átomo
+===============================
+En la composición, el todo crea y posee sus partes. Si el átomo
+desaparece, su núcleo y electrones también.
 
-Idea central
-------------
-La composición es una relación TIENE-UN donde el objeto contenedor
-POSEE a los objetos internos: si el átomo se destruye, su núcleo
-y sus electrones también dejan de existir con él.
+Esto lo diferencia de la agregación: allá las partes existen
+por su cuenta (como planetas sin sistema). Aquí no.
 
-    Atomo ──(crea y posee)──► Nucleo
-         └──(crea y posee)──► [Electron, Electron, ...]
+    Atomo crea → Nucleo
+    Atomo crea → [Electron, Electron, ...]
 
-Diferencia con agregación: en la agregación las partes pueden
-existir de forma independiente (ver directorio 'agregacion').
-
-Tareas para el estudiante
--------------------------
-1. Agrega un método `ionizar(n)` que retire n electrones del átomo.
-2. Implementa `__eq__` para comparar átomos por número atómico.
-3. Calcula el radio de Bohr del n-ésimo orbital con
-   r_n = n²·a₀ / Z (donde a₀ = 0.529 Å).
+Para practicar:
+1. Agrega ionizar(n) que retire n electrones del átomo.
+2. Implementa __eq__ para comparar átomos por número atómico.
+3. Calcula el radio de Bohr del n-ésimo orbital:
+   r_n = n²·a₀ / Z  (a₀ = 0.529 Å)
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Partes del átomo
-# ---------------------------------------------------------------------------
+# estas clases no se usan solas, el átomo las crea internamente
 
 class Electron:
     """Electrón en una capa del átomo."""
@@ -94,9 +85,7 @@ class Nucleo:
         return f"Nucleo(Z={self.Z}, N={self.N}, A={self.numero_masico})"
 
 
-# ---------------------------------------------------------------------------
-# Clase compuesta: Átomo
-# ---------------------------------------------------------------------------
+# el átomo crea y controla su núcleo y electrones
 
 class Atomo:
     """Átomo neutro: crea y posee su núcleo y sus electrones."""
@@ -116,7 +105,7 @@ class Atomo:
         self._nucleo     = Nucleo(Z, N)
         self._electrones = self._distribuir_electrones(Z)
 
-    # ---- Propiedades que delegan al núcleo ----
+    # para consultar Z o A, el átomo le pregunta a su núcleo
 
     @property
     def numero_atomico(self) -> int:
@@ -136,7 +125,7 @@ class Atomo:
         return (self._nucleo.masa
                 + self.n_electrones * Electron.MASA)
 
-    # ---- Distribución electrónica ----
+    # asigna los electrones a capas según la regla 2n²
 
     def _distribuir_electrones(self, Z: int) -> list[Electron]:
         """Llena capas 1→2→3→... con máximos 2n² electrones."""
@@ -158,7 +147,7 @@ class Atomo:
             capas[e.numero_capa] = capas.get(e.numero_capa, 0) + 1
         return "  ".join(f"{n}:{cnt}" for n, cnt in sorted(capas.items()))
 
-    # ---- Energías ----
+    # energías usando el modelo de Bohr
 
     def energia_ionizacion_bohr(self) -> float:
         """Energía para arrancar el electrón más externo (eV)."""
@@ -167,7 +156,7 @@ class Atomo:
         capa_max = max(e.numero_capa for e in self._electrones)
         return abs(Electron(capa_max).energia_bohr(self._nucleo.Z))
 
-    # ---- Representación ----
+    # representación legible del átomo
 
     def __repr__(self):
         return (f"Atomo({self.simbolo}, Z={self.numero_atomico}, "
@@ -175,9 +164,7 @@ class Atomo:
                 f"e⁻={self.n_electrones})")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     elementos = [

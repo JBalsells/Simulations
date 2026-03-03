@@ -1,46 +1,34 @@
 """
 Abstracción — Ejemplo 1: Ecuaciones de estado de un gas
 ========================================================
-Conceptos OOP: ABC (Abstract Base Class), @abstractmethod,
-               interfaz obligatoria, polimorfismo por herencia.
+Aquí vemos cómo la abstracción nos permite definir una interfaz común
+para varios modelos sin importar cómo cada uno calcula internamente.
 
-Idea central
-------------
-La abstracción define QUÉ debe hacer un objeto sin especificar CÓMO.
-Usando `abc.ABC` forzamos que toda subclase implemente los métodos
-abstractos; si no lo hace, Python impide instanciarla.
+La idea: usando ABC obligamos a que cualquier modelo implemente
+presion(), nombre y descripcion(). Si no lo hace, Python ni siquiera
+deja crear el objeto. Así garantizamos que todos los modelos hablan
+el mismo idioma.
 
-Física
-------
-Tres modelos para la presión de un gas:
+Los tres modelos que implementamos:
+  Gas Ideal:      PV = nRT
+  Van der Waals:  corrige volumen molecular y atracción entre moléculas
+  Virial:         expansión en serie, más preciso a densidades moderadas
 
-  Gas Ideal:      PV = nRT          → P = nRT / V
-  Van der Waals:  (P + an²/V²)(V−nb) = nRT
-  Virial (2.º):   PV/(nRT) = 1 + B(T)·n/V
-
-Todos comparten la interfaz:
-    presion(V, T, n) → float (Pa)
-    nombre           → str
-    descripcion()    → str
-
-Tareas para el estudiante
--------------------------
+Para practicar:
 1. Agrega el modelo de Redlich-Kwong con sus constantes.
-2. Implementa `temperatura_critica()` y `presion_critica()` como
-   métodos abstractos (las constantes dependen del modelo).
-3. Traza P(V) para los tres modelos con matplotlib y compáralos.
+2. Agrega temperatura_critica() y presion_critica() como métodos
+   abstractos (cada modelo las calcula diferente).
+3. Grafica P(V) para los tres modelos con matplotlib y compáralos.
 """
 
 from abc import ABC, abstractmethod
 import math
 
 
-# ---------------------------------------------------------------------------
-# Clase base abstracta — define la interfaz
-# ---------------------------------------------------------------------------
+# La clase base solo define qué métodos deben existir, no cómo funcionan
 
 class EcuacionEstado(ABC):
-    """Interfaz abstracta para modelos termodinámicos de gases."""
+    """Contrato que deben cumplir todos los modelos de gas."""
 
     R = 8.314  # J mol⁻¹ K⁻¹ — constante de los gases ideales
 
@@ -51,21 +39,14 @@ class EcuacionEstado(ABC):
 
     @abstractmethod
     def presion(self, V: float, T: float, n: float) -> float:
-        """Calcula la presión en Pascales.
-
-        Parámetros
-        ----------
-        V : volumen (m³)
-        T : temperatura (K)
-        n : cantidad de sustancia (mol)
-        """
+        """Devuelve la presión en Pascales dado volumen, temperatura y moles."""
 
     @abstractmethod
     def descripcion(self) -> str:
         """Descripción breve del modelo y sus limitaciones."""
 
     def factor_compresibilidad(self, V: float, T: float, n: float) -> float:
-        """Z = PV / nRT — factor de compresibilidad (1 para gas ideal)."""
+        """Z = PV/nRT — vale 1 para el gas ideal, se aleja de 1 según el modelo."""
         P = self.presion(V, T, n)
         return P * V / (n * self.R * T)
 
@@ -73,9 +54,7 @@ class EcuacionEstado(ABC):
         return f"{self.__class__.__name__}({self.nombre})"
 
 
-# ---------------------------------------------------------------------------
-# Implementación 1: Gas Ideal
-# ---------------------------------------------------------------------------
+# Modelo 1: el más simple, funciona bien a bajas presiones
 
 class GasIdeal(EcuacionEstado):
     """PV = nRT — modelo sin interacciones moleculares."""
@@ -93,14 +72,12 @@ class GasIdeal(EcuacionEstado):
                 "ni fuerzas intermoleculares.")
 
 
-# ---------------------------------------------------------------------------
-# Implementación 2: Van der Waals
-# ---------------------------------------------------------------------------
+# Modelo 2: corrige el gas ideal con dos constantes que dependen del gas
 
 class VanDerWaals(EcuacionEstado):
     """(P + an²/V²)(V − nb) = nRT — considera volumen y atracción."""
 
-    # Constantes de Van der Waals para algunos gases
+    # valores medidos experimentalmente para cada gas
     CONSTANTES = {
         "N2": (0.1370, 3.87e-5),   # a (Pa·m⁶/mol²), b (m³/mol)
         "CO2":(0.3658, 4.29e-5),
@@ -128,18 +105,16 @@ class VanDerWaals(EcuacionEstado):
                 "Mejor que el gas ideal a presiones moderadas.")
 
     def temperatura_boyle(self) -> float:
-        """T_B = a / (R·b) — temperatura de Boyle (comportamiento ideal)."""
+        """Temperatura a la que este gas se comporta casi como gas ideal."""
         return self.a / (self.R * self.b)
 
 
-# ---------------------------------------------------------------------------
-# Implementación 3: Virial (segundo coeficiente)
-# ---------------------------------------------------------------------------
+# Modelo 3: más flexible, expresa las desviaciones del gas ideal como una serie
 
 class Virial(EcuacionEstado):
     """PV/(nRT) = 1 + B(T)·(n/V) — expansión virial de segundo orden."""
 
-    # Segundo coeficiente virial aproximado B(T) = b - a/(RT)
+    # B(T) = b - a/(RT): cuánto se aleja el gas del comportamiento ideal a temperatura T
     def __init__(self, a: float = 0.1370, b: float = 3.87e-5):
         self.a = a
         self.b = b
@@ -162,9 +137,7 @@ class Virial(EcuacionEstado):
                 "captura las desviaciones del gas ideal.")
 
 
-# ---------------------------------------------------------------------------
-# Función que trabaja con cualquier EcuacionEstado
-# ---------------------------------------------------------------------------
+# esta función no sabe qué modelo recibe, solo que tiene presion() y nombre
 
 def tabla_pV(modelo: EcuacionEstado, T: float, n: float,
              volumenes: list[float]) -> None:
@@ -179,9 +152,7 @@ def tabla_pV(modelo: EcuacionEstado, T: float, n: float,
         print(f"  {V:>8.1f}  {P/1000:>10.3f}  {Z:>8.5f}")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# Comparamos los tres modelos con los mismos datos de entrada
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -215,7 +186,7 @@ if __name__ == "__main__":
         P = modelo.presion(V_peq, T, n)
         print(f"  {modelo.nombre:30s}  P={P/1e6:.3f} MPa,  Z={Z:.5f}")
 
-    # Demostración: no se puede instanciar EcuacionEstado directamente
+    # intentar crear la clase abstracta directamente debe fallar
     print("\n--- Intentar instanciar clase abstracta ---")
     try:
         EcuacionEstado()

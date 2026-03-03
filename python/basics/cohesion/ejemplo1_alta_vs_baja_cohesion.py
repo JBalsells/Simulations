@@ -1,56 +1,35 @@
 """
-Cohesión — Ejemplo 1: Alta vs. baja cohesión en análisis de datos
-==================================================================
-Conceptos OOP: cohesión (cuánto "hace una sola cosa" una clase),
-               principio de responsabilidad única (SRP), refactoring.
+Cohesión — Ejemplo 1: Alta vs. baja cohesión
+=============================================
+Cohesión = qué tan enfocada está una clase en hacer una sola cosa.
 
-Idea central
-------------
-Una clase tiene ALTA COHESIÓN cuando todos sus métodos y atributos
-se relacionan con UN único propósito bien definido.
-Una clase tiene BAJA COHESIÓN cuando mezcla responsabilidades distintas.
+Una clase con BAJA cohesión hace demasiado: mide, guarda, calcula,
+envía emails... Si algo cambia en uno de esos aspectos, hay que
+tocar la misma clase. Es difícil de testear y de reutilizar.
 
-Regla práctica: si el nombre de la clase requiere la palabra "y"
-o "varios", probablemente tiene baja cohesión.
+Una clase con ALTA cohesión tiene un único propósito claro.
+Si su nombre necesita la palabra "y", probablemente hace demasiado.
 
-Mala práctica — clase con baja cohesión:
------------------------------------------
-    class FisicaExperimento:
-        medir_temperatura()        ← medición
-        guardar_en_archivo()       ← I/O
-        calcular_promedio()        ← estadística
-        graficar_resultados()      ← visualización
-        enviar_reporte_email()     ← comunicación
+Truco fácil: si puedes ponerle un nombre sin usar "y", probablemente
+tiene buena cohesión.
 
-Buena práctica — clases con alta cohesión:
--------------------------------------------
-    class SensorTemperatura        ← sólo mide
-    class AnalizadorEstadistico    ← sólo calcula estadísticas
-    class Exportador               ← sólo guarda/carga datos
-
-Tareas para el estudiante
--------------------------
-1. ¿Qué clase tiene mayor cohesión: `SensorTemperatura` o
-   `FisicaExperimentoBajaCohesion`? ¿Por qué?
-2. Extrae la clase `Exportador` con métodos guardar_csv() y
-   cargar_csv() y conéctala a `AnalizadorEstadistico`.
-3. Agrega `SensorPresion` siguiendo el mismo patrón de alta cohesión.
+Para practicar:
+1. ¿Por qué SensorTemperatura tiene más cohesión que FisicaExperimentoBajaCohesion?
+2. Extrae una clase Exportador con guardar_csv() y cargar_csv().
+3. Agrega SensorPresion siguiendo el mismo patrón.
 """
 
 import math
 import random
 
 
-# ===========================================================================
-# BAJA COHESIÓN — clase que hace todo (anti-patrón)
-# ===========================================================================
+# --- MAL EJEMPLO: todo en una clase ---
 
 class FisicaExperimentoBajaCohesion:
-    """⚠ EJEMPLO DE LO QUE NO SE DEBE HACER.
+    """⚠ No hagas esto: mide, calcula, guarda y envía todo desde aquí.
 
-    Esta clase mezcla: adquisición de datos, análisis estadístico,
-    detección de anomalías, representación textual y 'exportación'.
-    Es difícil de testear, extender y reutilizar.
+    Si el día de mañana quieres cambiar cómo se guarda o cómo se
+    envía el reporte, tienes que tocar esta misma clase.
     """
 
     def __init__(self):
@@ -92,12 +71,10 @@ class FisicaExperimentoBajaCohesion:
         self.enviar_reporte()
 
 
-# ===========================================================================
-# ALTA COHESIÓN — cada clase tiene UNA responsabilidad
-# ===========================================================================
+# --- BUEN EJEMPLO: cada clase tiene un único trabajo ---
 
 class SensorTemperatura:
-    """SÓLO mide y calibra. No analiza, no guarda, no envía."""
+    """Solo mide y calibra. No sabe nada de estadísticas ni reportes."""
 
     def __init__(self, offset: float = 0.5, ruido: float = 0.2):
         self._offset = offset
@@ -113,7 +90,7 @@ class SensorTemperatura:
 
 
 class AnalizadorEstadistico:
-    """SÓLO realiza cálculos estadísticos sobre una colección de datos."""
+    """Solo hace matemáticas con los datos. No mide ni muestra nada."""
 
     def __init__(self, datos: list[float]):
         if not datos:
@@ -132,7 +109,7 @@ class AnalizadorEstadistico:
         return math.sqrt(sum((x - m)**2 for x in self._datos) / self.n)
 
     def error_estandar(self) -> float:
-        """σ / √n — incertidumbre de la media."""
+        """Qué tan confiable es la media: disminuye al tener más muestras."""
         return self.desv_estandar() / math.sqrt(self.n)
 
     def mediana(self) -> float:
@@ -145,7 +122,7 @@ class AnalizadorEstadistico:
         return [x for x in self._datos if s > 0 and abs(x - m) / s > z_umbral]
 
     def intervalo_confianza_95(self) -> tuple[float, float]:
-        """Media ± 1.96·σ/√n — intervalo de confianza 95 %."""
+        """Rango donde cae el valor real con 95% de probabilidad."""
         delta = 1.96 * self.error_estandar()
         m = self.media()
         return m - delta, m + delta
@@ -155,7 +132,7 @@ class AnalizadorEstadistico:
 
 
 class ReportadorTexto:
-    """SÓLO formatea y muestra resultados. No calcula ni mide."""
+    """Solo da formato y muestra los resultados. No sabe de física ni de datos."""
 
     def __init__(self, titulo: str, unidad: str):
         self.titulo = titulo
@@ -177,9 +154,7 @@ class ReportadorTexto:
             print(f"  Outliers    : ninguno")
 
 
-# ===========================================================================
-# Programa principal
-# ===========================================================================
+# Comparamos ambos enfoques con los mismos datos
 
 if __name__ == "__main__":
     print("=" * 60)
@@ -205,7 +180,7 @@ if __name__ == "__main__":
     reporte   = ReportadorTexto("Temperatura del horno", "°C")
     reporte.mostrar_resumen(analiz)
 
-    # Reutilización: el mismo analizador sirve para otros datos
+    # el analizador no sabe de temperatura ni presión, funciona con cualquier dato
     print("\n  [Reutilizando AnalizadorEstadistico con datos de presión]")
     presiones = [101_325 + random.gauss(0, 50) for _ in range(15)]
     analiz_p  = AnalizadorEstadistico(presiones)

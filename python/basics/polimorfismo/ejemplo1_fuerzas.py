@@ -1,33 +1,19 @@
 """
 Polimorfismo — Ejemplo 1: Fuerzas físicas
 ==========================================
-Conceptos OOP: polimorfismo, duck typing, lista de objetos
-               heterogéneos tratados con la misma interfaz.
+Gravedad, Coulomb, fricción, resorte: cuatro ecuaciones distintas
+pero todas responden a calcular() y descripcion(). Con eso basta
+para tratarlas igual: meterlas en una lista y llamar al mismo método
+sin importar de qué tipo sea cada objeto.
 
-Idea central
-------------
-Distintos tipos de fuerza (gravedad, eléctrica, fricción, resorte)
-comparten la interfaz:
-
-    calcular(distancia_o_contexto)  → float  (N)
-    descripcion()                   → str
-
-Podemos meterlos en una lista y llamar al mismo método
-sin saber de qué tipo concreto es cada objeto.
-
-Tareas para el estudiante
--------------------------
-1. Agrega una clase `FuerzaMagnética` con F = q·v·B·sin(θ).
-2. Ordena la lista `fuerzas` por magnitud usando sorted()
-   y un lambda. ¿Qué método usas como clave?
-3. Implementa `__lt__` en la clase base para hacer los
-   objetos comparables directamente.
+Para practicar:
+1. Agrega FuerzaMagnetica con F = q·v·B·sin(θ).
+2. Ordena la lista fuerzas por magnitud con sorted() y un lambda.
+3. Implementa __lt__ en la clase base para comparar directamente.
 """
 
 
-# ---------------------------------------------------------------------------
-# Clase base (interfaz informal — duck typing)
-# ---------------------------------------------------------------------------
+# interfaz común: cualquier fuerza sabe calcular su magnitud y describirse
 
 class Fuerza:
     """Interfaz común para cualquier tipo de fuerza."""
@@ -43,9 +29,7 @@ class Fuerza:
         return f"{self.__class__.__name__}()"
 
 
-# ---------------------------------------------------------------------------
-# Subclases concretas
-# ---------------------------------------------------------------------------
+# cada fuerza implementa su propia ecuación física
 
 class FuerzaGravitacional(Fuerza):
     """F = G · m₁ · m₂ / r²  — ley de gravitación de Newton."""
@@ -114,9 +98,7 @@ class FuerzaResorte(Fuerza):
         return f"Resorte k={self.k} N/m — proporcional al desplazamiento"
 
 
-# ---------------------------------------------------------------------------
-# Función polimórfica: trabaja con cualquier Fuerza
-# ---------------------------------------------------------------------------
+# esta función no sabe qué tipo de fuerza recibe — eso es polimorfismo
 
 def analizar_fuerza(fuerza: Fuerza, param: float) -> None:
     """Calcula y muestra la magnitud de cualquier fuerza."""
@@ -125,9 +107,7 @@ def analizar_fuerza(fuerza: Fuerza, param: float) -> None:
     print(f"    → F = {magnitud:.4e} N  (param={param})")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     # Parámetro de cada fuerza (distancia, desplazamiento, etc.)

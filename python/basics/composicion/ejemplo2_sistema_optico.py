@@ -1,41 +1,29 @@
 """
 Composición — Ejemplo 2: Sistema óptico (telescopio)
 =====================================================
-Conceptos OOP: composición en cadena, delegación a partes,
-               el todo define el comportamiento de sus partes.
-
-Idea central
-------------
-Un telescopio ESTÁ HECHO DE lentes/espejos. No tiene sentido
-hablar del "objetivo" de un telescopio por separado; es una parte
-que el telescopio crea, posee y usa.
+Un telescopio está hecho de sus partes: objetivo, ocular y montura.
+No tiene sentido hablar del "objetivo" sin el telescopio; es una parte
+que el telescopio crea, posee y usa. Eso es composición.
 
     Telescopio ──► Objetivo    (lente/espejo primario)
                ──► Ocular      (lente eyepiece)
                ──► Montura     (soporte mecánico)
 
-Fórmulas ópticas usadas
------------------------
-  Aumento angular : M = f_obj / f_oc
+Fórmulas que usamos:
+  Aumento angular  : M = f_obj / f_oc
   Límite difracción: θ = 1.22 · λ / D  (rad) — criterio de Rayleigh
-  Poder resolutor : R = D / (1.22 · λ)  líneas/m
-  Magnitud límite : m_lim ≈ 2.1 + 5·log10(D·1000)  (D en m)
+  Magnitud límite  : m_lim ≈ 2.1 + 5·log10(D·1000)  (D en m)
 
-Tareas para el estudiante
--------------------------
-1. Agrega un `FiltroSolar` que reduzca la apertura efectiva.
-2. Implementa el cálculo de potencia captadora relativa al ojo
-   (pupila ~7 mm): P = (D/0.007)².
-3. ¿Qué pasa con el aumento si el ocular tiene f=0? Protégelo
-   con una validación en el setter.
+Para practicar:
+1. Agrega un FiltroSolar que reduzca la apertura efectiva.
+2. Implementa la potencia captadora relativa al ojo (pupila ~7 mm): P = (D/0.007)².
+3. ¿Qué pasa con el aumento si el ocular tiene f=0?
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Partes del telescopio
-# ---------------------------------------------------------------------------
+# estas clases no se usan solas, el telescopio las crea internamente
 
 class Objetivo:
     """Lente o espejo primario que colecta la luz."""
@@ -89,9 +77,7 @@ class Montura:
         return f"Montura({self.tipo}, max={self.carga_max_kg} kg)"
 
 
-# ---------------------------------------------------------------------------
-# Clase compuesta: Telescopio
-# ---------------------------------------------------------------------------
+# el telescopio crea y controla su objetivo, ocular y montura
 
 class Telescopio:
     """Instrumento óptico compuesto por objetivo, ocular y montura."""
@@ -108,7 +94,7 @@ class Telescopio:
         self._ocular   = Ocular(focal_oc)
         self._montura  = Montura(tipo_montura, carga_max_kg)
 
-    # ---- Propiedades ópticas calculadas ----
+    # óptica calculada a partir del objetivo y el ocular
 
     @property
     def aumento(self) -> float:
@@ -141,7 +127,7 @@ class Telescopio:
         """Veces más luz que el ojo desnudo."""
         return (self._objetivo.diametro / pupila_m)**2
 
-    # ---- Descripción completa ----
+    # ficha técnica completa
 
     def ficha_tecnica(self) -> str:
         lineas = [
@@ -163,9 +149,7 @@ class Telescopio:
                 f"M={self.aumento:.0f}×)")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 60)

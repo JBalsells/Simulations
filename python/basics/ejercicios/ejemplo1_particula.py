@@ -1,9 +1,8 @@
 """
 Ejemplo 1: Clase Partícula
 ==========================
-Conceptos OOP: clase, atributos, métodos, instancias
-
-Modelamos una partícula puntual en 1D con masa, posición y velocidad.
+Una partícula puntual en 1D: tiene masa, posición y velocidad.
+A partir de ahí se calculan energía cinética, momentum y movimiento.
 """
 
 

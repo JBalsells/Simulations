@@ -1,39 +1,24 @@
 """
 Polimorfismo — Ejemplo 2: Familia de osciladores
 =================================================
-Conceptos OOP: polimorfismo en tiempo de ejecución, método común
-               con comportamiento distinto por tipo, lista mixta.
+Tres osciladores muy distintos en física, pero todos responden
+a posicion(t), velocidad(t) y energia_total(t). Eso permite
+meterlos en una lista y tratarlos igual, sin preguntar de qué tipo es cada uno.
 
-Física
-------
-Los tres osciladores comparten la variable `posicion(t)` pero
-tienen ecuaciones distintas:
+  Armónico    : x(t) = A·cos(ω₀·t)
+  Amortiguado : x(t) = A·e^{−γt}·cos(ω_d·t)
+  Forzado     : x(t) = B·cos(ω_f·t − φ)  [régimen estacionario]
 
-  Armónico      : x(t) = A·cos(ω₀·t)
-  Amortiguado   : x(t) = A·e^{−γt}·cos(ω_d·t),  ω_d = √(ω₀²−γ²)
-  Forzado       : x(t) = estado estacionario + transitorio (simplif.)
-
-Todos implementan la misma interfaz:
-    posicion(t)        → float  (m)
-    velocidad(t)       → float  (m/s)
-    energia_total(t)   → float  (J)
-    nombre             → str
-
-Tareas para el estudiante
--------------------------
-1. Agrega `OsciladorNoLineal` con potencial cúbico.
-2. Calcula en qué tiempo el oscilador amortiguado pierde
-   el 50 % de su energía inicial (usa un bucle o bisección).
-3. Grafica posicion(t) para los tres tipos en el mismo eje
-   usando matplotlib (si lo tienes instalado).
+Para practicar:
+1. Agrega OsciladorNoLineal con potencial cúbico.
+2. Calcula en qué tiempo el amortiguado pierde el 50% de su energía.
+3. Grafica posicion(t) para los tres con matplotlib.
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Clase base (interfaz)
-# ---------------------------------------------------------------------------
+# interfaz común: todos los osciladores implementan estos métodos
 
 class Oscilador:
     """Interfaz base para cualquier oscilador mecánico."""
@@ -66,9 +51,7 @@ class Oscilador:
                 f"A={self.amplitud} m, ω₀={self.omega0:.2f} rad/s)")
 
 
-# ---------------------------------------------------------------------------
-# Oscilador armónico simple
-# ---------------------------------------------------------------------------
+# sin pérdidas: oscila para siempre con la misma amplitud
 
 class OsciladorArmonico(Oscilador):
     """x(t) = A·cos(ω₀·t) — sin pérdidas de energía."""
@@ -83,9 +66,7 @@ class OsciladorArmonico(Oscilador):
         return 2 * math.pi / self.omega0
 
 
-# ---------------------------------------------------------------------------
-# Oscilador amortiguado (subamortiguado)
-# ---------------------------------------------------------------------------
+# pierde energía al medio: la amplitud decae exponencialmente
 
 class OsciladorAmortiguado(Oscilador):
     """x(t) = A·e^{−γt}·cos(ω_d·t) — pierde energía al medio."""
@@ -111,9 +92,7 @@ class OsciladorAmortiguado(Oscilador):
         return e0 * math.exp(-2 * self.gamma * t)
 
 
-# ---------------------------------------------------------------------------
-# Oscilador forzado (régimen estacionario)
-# ---------------------------------------------------------------------------
+# fuerza externa que impulsa el sistema; cerca de ω₀ aparece la resonancia
 
 class OsciladorForzado(Oscilador):
     """Sistema amortiguado con fuerza externa F₀·cos(ω_f·t).
@@ -143,9 +122,7 @@ class OsciladorForzado(Oscilador):
         return abs(self.omega_f - self.omega0) < 0.01 * self.omega0
 
 
-# ---------------------------------------------------------------------------
-# Función polimórfica: misma operación, distintos objetos
-# ---------------------------------------------------------------------------
+# imprime la tabla de cualquier oscilador — no importa cuál sea
 
 def tabla_temporal(oscilador: Oscilador, tiempos: list[float]) -> None:
     print(f"\n  [{oscilador}]")
@@ -158,9 +135,7 @@ def tabla_temporal(oscilador: Oscilador, tiempos: list[float]) -> None:
         print(f"  {t:>8.2f}  {x:>10.4f}  {v:>10.4f}  {e:>12.6f}")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     m, A, w0 = 0.5, 0.1, 2 * math.pi  # masa, amplitud, ω₀ = 1 Hz

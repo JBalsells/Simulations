@@ -1,19 +1,15 @@
 """
 Ejemplo 3: Herencia y Polimorfismo — Simulación de cuerpos celestes
 ====================================================================
-Conceptos OOP: herencia, polimorfismo, clase base/derivada, super()
-
-Modelamos un sistema gravitacional simple donde distintos tipos de
-cuerpos celestes comparten comportamiento común pero tienen
-características propias.
+Todos los cuerpos celestes tienen masa y gravedad. Las estrellas
+además tienen luminosidad. Los planetas tienen período orbital.
+Los satélites orbitan un planeta concreto. Eso es herencia.
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Clase base
-# ---------------------------------------------------------------------------
+# todo cuerpo celeste tiene masa, posición y puede calcular la fuerza gravitacional
 
 class CuerpoCeleste:
     """Clase base para cualquier cuerpo celeste."""
@@ -49,9 +45,7 @@ class CuerpoCeleste:
         return self.info()
 
 
-# ---------------------------------------------------------------------------
-# Clases derivadas (herencia)
-# ---------------------------------------------------------------------------
+# cada subclase agrega lo que la distingue
 
 class Estrella(CuerpoCeleste):
     """Una estrella: tiene luminosidad y temperatura superficial."""
@@ -129,9 +123,7 @@ class Satelite(CuerpoCeleste):
         return f"🌙 {base}, orbita {self.planeta_huesped.nombre}, r={r_km:.0f} km"
 
 
-# ---------------------------------------------------------------------------
-# Uso: construir un mini sistema solar
-# ---------------------------------------------------------------------------
+# --- demo: mini sistema solar ---
 
 if __name__ == "__main__":
 

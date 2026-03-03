@@ -1,22 +1,14 @@
 """
 Sobrecarga — Ejemplo 1: Vector 3D con operadores sobrecargados
 ==============================================================
-Conceptos OOP: sobrecarga de operadores (__add__, __sub__, __mul__,
-               __truediv__, __neg__, __abs__, __eq__, __repr__).
+En física es natural escribir u + v, 3 * u, u · v. Python permite
+definir exactamente eso para clases propias usando métodos dunder
+(__add__, __mul__, __abs__, etc.).
 
-Idea central
-------------
-En física, operar con vectores es natural:
-  u + v,  u − v,  3 * u,  u · v (producto punto),  u × v (cruz)
-
-Python permite definir el comportamiento de los operadores
-+, -, *, /, |, etc. para clases propias mediante métodos dunder.
-
-Tareas para el estudiante
--------------------------
-1. Implementa `__rmul__` para que `3 * v` funcione igual que `v * 3`.
-2. Agrega `angulo_con(otro)` usando el producto punto.
-3. Implementa `proyeccion_sobre(otro)` → escalar.
+Para practicar:
+1. __rmul__ ya está implementado — verifica que 3 * v funcione.
+2. Agrega angulo_con(otro) usando el producto punto.
+3. Implementa proyeccion_sobre(otro) que devuelva el escalar.
 """
 
 import math
@@ -30,15 +22,13 @@ class Vector3D:
         self.y = y
         self.z = z
 
-    # ---- Representación ----
-
     def __repr__(self):
         return f"Vector3D({self.x}, {self.y}, {self.z})"
 
     def __str__(self):
         return f"({self.x:.3f}, {self.y:.3f}, {self.z:.3f})"
 
-    # ---- Aritmética básica ----
+    # suma, resta, negación y escala
 
     def __add__(self, otro: "Vector3D") -> "Vector3D":
         """u + v — suma componente a componente."""
@@ -66,7 +56,7 @@ class Vector3D:
             raise ZeroDivisionError("No se puede dividir un vector por cero.")
         return Vector3D(self.x / escalar, self.y / escalar, self.z / escalar)
 
-    # ---- Comparación ----
+    # igualdad con tolerancia numérica (float no es exacto)
 
     def __eq__(self, otro: object) -> bool:
         """u == v — igualdad con tolerancia numérica."""
@@ -77,13 +67,13 @@ class Vector3D:
                 abs(self.y - otro.y) < eps and
                 abs(self.z - otro.z) < eps)
 
-    # ---- Norma (módulo) ----
+    # |v| con abs(v)
 
     def __abs__(self) -> float:
         """|v| — norma euclidiana (operador abs())."""
         return math.sqrt(self.x**2 + self.y**2 + self.z**2)
 
-    # ---- Productos vectoriales ----
+    # producto punto (escalar) y producto cruz (vector)
 
     def punto(self, otro: "Vector3D") -> float:
         """u · v = ux·vx + uy·vy + uz·vz — producto escalar."""
@@ -97,7 +87,7 @@ class Vector3D:
             self.x * otro.y - self.y * otro.x,
         )
 
-    # ---- Operaciones adicionales ----
+    # normalizar y ángulo entre vectores
 
     def normalizar(self) -> "Vector3D":
         """û = v / |v| — vector unitario."""
@@ -113,9 +103,7 @@ class Vector3D:
         return math.degrees(math.acos(cos_theta))
 
 
-# ---------------------------------------------------------------------------
-# Programa principal: aplicaciones físicas
-# ---------------------------------------------------------------------------
+# --- demo: fuerza, trabajo, torque y momento angular ---
 
 if __name__ == "__main__":
     print("=" * 55)

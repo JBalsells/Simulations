@@ -1,34 +1,21 @@
 """
 Encapsulamiento — Ejemplo 2: Instrumento de medición calibrado
 ===============================================================
-Conceptos OOP: @property, setter con validación, atributos de sólo
-               lectura, estado interno protegido, interfaz mínima.
+Un sensor devuelve una señal cruda: no es el valor final. Hay que
+aplicarle offset, ganancia y filtro antes de mostrársela al usuario.
+Esos parámetros internos no deben tocarse desde afuera directamente;
+se ocultan con encapsulamiento y se exponen solo a través de la interfaz.
 
-Idea central
-------------
-Un instrumento real devuelve una señal cruda que debe ser:
-  1. Validada (fuera de rango → error)
-  2. Corregida por offset y ganancia (calibración)
-  3. Filtrada (promedio de las últimas N lecturas)
-
-El usuario sólo debe ver la lectura calibrada. Los parámetros
-de calibración y el buffer interno son detalles de implementación
-que se ocultan con encapsulamiento.
-
-Tareas para el estudiante
--------------------------
-1. Agrega un atributo `unidad` y muéstralo en `__repr__`.
-2. Implementa `resetear_calibracion()` que vuelva a offset=0, ganancia=1.
-3. ¿Qué pasa con lecturas previas al buffer al resetear?
-   ¿Deberías también vaciar el buffer? Justifica.
+Para practicar:
+1. Agrega un atributo unidad y muéstralo en __repr__.
+2. Implementa resetear_calibracion() que vuelva a offset=0, ganancia=1.
+3. ¿Deberías también vaciar el buffer al resetear? Justifica.
 """
 
 from collections import deque
 
 
-# ---------------------------------------------------------------------------
-# Instrumento base con calibración
-# ---------------------------------------------------------------------------
+# sensor con calibración y filtro de promedio
 
 class InstrumentoMedicion:
     """Instrumento con señal cruda, calibración y filtro de promedio.
@@ -50,7 +37,7 @@ class InstrumentoMedicion:
         self.__lectura_cruda: float | None = None
         self.__buffer: deque[float] = deque(maxlen=n_promedio)
 
-    # ---- Calibración ----
+    # ajuste de offset y ganancia
 
     @property
     def offset(self) -> float:
@@ -72,7 +59,7 @@ class InstrumentoMedicion:
         self.__ganancia = float(valor)
         print(f"  [{self.nombre}] Ganancia ajustada a {self.__ganancia}")
 
-    # ---- Lectura ----
+    # lectura calibrada y filtrada
 
     def registrar_lectura_cruda(self, valor: float) -> None:
         """Recibe la señal del sensor y aplica calibración."""
@@ -107,9 +94,7 @@ class InstrumentoMedicion:
         return f"{self.__class__.__name__}('{self.nombre}', lectura={valor})"
 
 
-# ---------------------------------------------------------------------------
-# Subclases especializadas
-# ---------------------------------------------------------------------------
+# sensores concretos: cada uno tiene su rango y operaciones propias
 
 class Termometro(InstrumentoMedicion):
     """Sensor de temperatura: rango típico −50 a 500 °C."""
@@ -144,9 +129,7 @@ class Galvanometro(InstrumentoMedicion):
         return self.lectura**2 * resistencia
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 55)

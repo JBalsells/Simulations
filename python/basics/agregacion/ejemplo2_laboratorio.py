@@ -1,37 +1,25 @@
 """
 Agregación — Ejemplo 2: Laboratorio de física
 ==============================================
-Conceptos OOP: agregación con lista de objetos, los objetos miembros
-               existen independientemente del contenedor.
+Un laboratorio tiene instrumentos, pero no los posee: los instrumentos
+pueden estar en varios laboratorios a la vez, prestarse, o usarse en
+distintos experimentos sin que nadie los destruya al terminar.
 
-Idea central
-------------
-Un laboratorio AGRUPA instrumentos, pero los instrumentos no le
-pertenecen: pueden prestarse a otro laboratorio, guardarse en el
-almacén, o reutilizarse en distintos experimentos.
+El cronómetro puede ser del lab de termodinámica Y del lab de mecánica
+al mismo tiempo. Eso es la agregación.
 
-    Laboratorio ──(agrega)──► [Instrumento, ...]
-                ──(agrega)──► [Experimento, ...]
-
-    Experimento ──(agrega)──► [Instrumento, ...]  ← mismo objeto
-
-Tareas para el estudiante
--------------------------
-1. Agrega un método `prestamo(instrumento, otro_lab)` que mueva
-   un instrumento de un laboratorio a otro.
-2. Implementa `disponibles()` que filtre los instrumentos
-   que no están asignados a ningún experimento activo.
-3. ¿Qué ocurre si destruyes `laboratorio` pero `experimento`
-   sigue referenciando los mismos instrumentos?
+Para practicar:
+1. Agrega prestamo(instrumento, otro_lab) que lo mueva de un lab a otro.
+2. Implementa disponibles() que filtre los instrumentos sin experimento asignado.
+3. ¿Qué pasa si borras el laboratorio pero el experimento sigue
+   referenciando los mismos instrumentos?
 """
 
 
-# ---------------------------------------------------------------------------
-# Instrumento: existe por sí solo
-# ---------------------------------------------------------------------------
+# Un instrumento existe solo, sin depender de ningún lab ni experimento
 
 class Instrumento:
-    """Instrumento de laboratorio reutilizable."""
+    """Instrumento físico que se puede usar en cualquier experimento."""
 
     def __init__(self, nombre: str, tipo: str,
                  precision: float, unidad: str):
@@ -48,12 +36,10 @@ class Instrumento:
         return f"Instrumento('{self.nombre}', ±{self.precision} {self.unidad})"
 
 
-# ---------------------------------------------------------------------------
-# Experimento: agrega instrumentos necesarios
-# ---------------------------------------------------------------------------
+# El experimento también solo referencia instrumentos, no los crea
 
 class Experimento:
-    """Experimento físico que utiliza un conjunto de instrumentos."""
+    """Agrupa los instrumentos necesarios y registra las mediciones."""
 
     def __init__(self, nombre: str, descripcion: str):
         self.nombre      = nombre
@@ -67,7 +53,7 @@ class Experimento:
 
     def registrar_medicion(self, instrumento: Instrumento,
                            valor: float, incertidumbre: float = None) -> None:
-        """Guarda una medición con su instrumento asociado."""
+        """Guarda un valor medido. Usa la precisión del instrumento si no se indica otra."""
         if instrumento not in self._instrumentos:
             raise ValueError(f"'{instrumento.nombre}' no está asignado "
                              f"a este experimento.")
@@ -80,7 +66,7 @@ class Experimento:
         })
 
     def resultado_promedio(self, nombre_instrumento: str) -> tuple[float, float]:
-        """Promedio y desv. estándar de mediciones de un instrumento."""
+        """Calcula la media y desviación estándar de todas las lecturas de ese instrumento."""
         datos = [m["valor"] for m in self._mediciones
                  if m["instrumento"] == nombre_instrumento]
         if not datos:
@@ -104,12 +90,10 @@ class Experimento:
                 f"instrumentos={len(self._instrumentos)})")
 
 
-# ---------------------------------------------------------------------------
-# Laboratorio: agrega instrumentos y experimentos
-# ---------------------------------------------------------------------------
+# El laboratorio solo lleva la cuenta de qué tiene, no posee nada en exclusiva
 
 class Laboratorio:
-    """Laboratorio que gestiona un inventario de instrumentos y experimentos."""
+    """Lleva el inventario de instrumentos y los experimentos registrados."""
 
     def __init__(self, nombre: str, departamento: str):
         self.nombre       = nombre
@@ -141,36 +125,31 @@ class Laboratorio:
                 f"exp={len(self._experimentos)})")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
     print("=" * 58)
     print("LABORATORIO DE FÍSICA — agregación")
     print("=" * 58)
 
-    # Crear instrumentos de forma INDEPENDIENTE
+    # creamos los instrumentos primero, sin asignarlos a ningún lado
     termometro  = Instrumento("Termómetro digital",  "temperatura",  0.1,  "°C")
     cronometro  = Instrumento("Cronómetro",          "tiempo",       0.01, "s")
     balanza     = Instrumento("Balanza analítica",   "masa",         0.001,"g")
     regla       = Instrumento("Regla de acero",      "longitud",     0.5,  "mm")
     calorim     = Instrumento("Calorímetro Dewar",   "temperatura",  0.2,  "°C")
 
-    # Laboratorio de termodinámica
+    # nota: cronómetro y balanza aparecen en los dos laboratorios
     lab_termo = Laboratorio("Lab. Termodinámica", "Física")
     for inst in [termometro, cronometro, balanza, calorim]:
         lab_termo.incorporar(inst)
 
-    # Laboratorio de mecánica (comparte cronómetro y regla)
     lab_mec = Laboratorio("Lab. Mecánica", "Física")
-    for inst in [cronometro, regla, balanza]:   # mismo cronometro y balanza
+    for inst in [cronometro, regla, balanza]:   # los mismos objetos, no copias
         lab_mec.incorporar(inst)
 
     lab_termo.inventario()
     lab_mec.inventario()
 
-    # Experimento 1: calor específico del agua
+    # asignamos instrumentos ya existentes al experimento
     exp1 = Experimento("Calor específico del agua",
                        "Calentar 100 g de agua y medir ΔT")
     exp1.asignar_instrumento(termometro)
@@ -208,7 +187,7 @@ if __name__ == "__main__":
     print(f"\n  T promedio: ({T_media:.4f} ± {T_sigma:.4f}) s")
     print(f"  g experimental: {g_exp:.3f} m/s²  (real: 9.806)")
 
-    # El cronómetro sigue existiendo aunque eliminemos la referencia al lab
+    # borrar el laboratorio no destruye los instrumentos ni los experimentos
     print("\n--- Los instrumentos sobreviven al laboratorio ---")
     del lab_mec
     print(f"  Cronómetro: {cronometro}")   # sigue vivo

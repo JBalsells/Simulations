@@ -1,20 +1,12 @@
 """
 Sobrecarga — Ejemplo 2: Magnitud física con unidades
 =====================================================
-Conceptos OOP: __add__, __sub__, __mul__, __truediv__,
-               __str__, __repr__, __eq__, __lt__, __le__.
+¿Qué pasa si sumas 5 metros y 3 segundos? En física eso no tiene
+sentido, y aquí tampoco: los operadores sobrecargados detectan
+unidades incompatibles y lanzan un error antes de seguir.
 
-Idea central
-------------
-Al operar magnitudes físicas debemos asegurarnos de que las
-unidades sean compatibles. Sobrecargando los operadores podemos:
-  - Detectar sumas inválidas (5 m + 3 s → error)
-  - Derivar nuevas unidades al multiplicar (3 m * 2 m = 6 m²)
-  - Comparar magnitudes del mismo tipo (¿v1 > v2?)
-
-Tareas para el estudiante
--------------------------
-1. Agrega soporte para potencias: `(magnitud)**2` con __pow__.
+Para practicar:
+1. __pow__ ya está implementado — verifica que (magnitud)**2 funcione.
 2. Implementa conversión de unidades (m → km, J → kJ).
 3. ¿Cómo representarías unidades compuestas como m/s²?
 """
@@ -27,15 +19,13 @@ class Magnitud:
         self.valor  = float(valor)
         self.unidad = unidad
 
-    # ---- Representación ----
-
     def __repr__(self):
         return f"Magnitud({self.valor}, '{self.unidad}')"
 
     def __str__(self):
         return f"{self.valor:.4g} {self.unidad}"
 
-    # ---- Suma y resta (requieren misma unidad) ----
+    # suma y resta: solo si las unidades coinciden
 
     def __add__(self, otra: "Magnitud") -> "Magnitud":
         self._verificar_unidad(otra, "+")
@@ -45,7 +35,7 @@ class Magnitud:
         self._verificar_unidad(otra, "-")
         return Magnitud(self.valor - otra.valor, self.unidad)
 
-    # ---- Multiplicación: combina unidades ----
+    # multiplicar combina las unidades: m × m = m·m
 
     def __mul__(self, otro) -> "Magnitud":
         if isinstance(otro, Magnitud):
@@ -57,7 +47,7 @@ class Magnitud:
     def __rmul__(self, escalar: float) -> "Magnitud":
         return self.__mul__(escalar)
 
-    # ---- División: combina unidades ----
+    # dividir también combina: m / s = m/s
 
     def __truediv__(self, otro) -> "Magnitud":
         if isinstance(otro, Magnitud):
@@ -74,12 +64,12 @@ class Magnitud:
         nueva_unidad = f"{self.unidad}^{exp}" if exp != 1 else self.unidad
         return Magnitud(self.valor ** exp, nueva_unidad)
 
-    # ---- Negación ----
+    # invertir signo conservando unidad
 
     def __neg__(self) -> "Magnitud":
         return Magnitud(-self.valor, self.unidad)
 
-    # ---- Comparación (requieren misma unidad) ----
+    # comparar: solo si las unidades coinciden
 
     def __eq__(self, otra: object) -> bool:
         if not isinstance(otra, Magnitud):
@@ -97,7 +87,7 @@ class Magnitud:
     def __gt__(self, otra: "Magnitud") -> bool:
         return not self.__le__(otra)
 
-    # ---- Validación interna ----
+    # verifica unidades antes de operar
 
     def _verificar_unidad(self, otra: "Magnitud", operacion: str) -> None:
         if self.unidad != otra.unidad:
@@ -107,9 +97,7 @@ class Magnitud:
             )
 
 
-# ---------------------------------------------------------------------------
-# Constructores convenientes para magnitudes comunes
-# ---------------------------------------------------------------------------
+# atajos para crear magnitudes sin repetir el nombre de la unidad
 
 def metros(valor: float)    -> Magnitud: return Magnitud(valor, "m")
 def segundos(valor: float)  -> Magnitud: return Magnitud(valor, "s")
@@ -119,9 +107,7 @@ def joules(valor: float)    -> Magnitud: return Magnitud(valor, "J")
 def kelvin(valor: float)    -> Magnitud: return Magnitud(valor, "K")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 55)

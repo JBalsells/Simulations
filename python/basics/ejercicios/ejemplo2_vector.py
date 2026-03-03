@@ -1,10 +1,8 @@
 """
 Ejemplo 2: Clase Vector 3D
 ===========================
-Conceptos OOP: sobrecarga de operadores, encapsulamiento, métodos estáticos
-
-Los vectores son fundamentales en física. Con OOP podemos hacer que
-operar con vectores sea tan natural como escribir las ecuaciones.
+Con OOP podemos hacer que operar con vectores sea tan natural como
+escribir las ecuaciones: v3 = v1 + v2, W = F.punto(d), τ = r.cruz(F).
 """
 
 import math
@@ -18,8 +16,7 @@ class Vector3D:
         self.y = y
         self.z = z
 
-    # --- Sobrecarga de operadores ---
-    # Esto permite escribir:  v3 = v1 + v2  en lugar de sumar componente a componente.
+    # sobrecarga: permite escribir v3 = v1 + v2 en lugar de sumar componente a componente
 
     def __add__(self, otro):
         """v1 + v2"""

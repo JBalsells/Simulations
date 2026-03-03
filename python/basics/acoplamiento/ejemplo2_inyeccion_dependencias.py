@@ -1,38 +1,30 @@
 """
-Acoplamiento — Ejemplo 2: Inyección de dependencias en experimento
-===================================================================
-Conceptos OOP: inyección de dependencias (DI), bajo acoplamiento,
-               intercambiabilidad de componentes, ABC como contrato.
+Acoplamiento — Ejemplo 2: Inyección de dependencias
+====================================================
+En lugar de que el experimento cree sus propias herramientas,
+se las pasamos desde fuera. Así podemos:
+  - Cambiar el sensor sin tocar el experimento
+  - Cambiar el integrador sin tocar la física
+  - Probar cada pieza por separado
 
-Idea central
-------------
-En lugar de que cada clase CREE sus dependencias (acoplamiento fuerte),
-las recibe desde fuera (inyección). Esto permite:
-  1. Cambiar el sensor sin tocar el experimento.
-  2. Cambiar el integrador numérico sin tocar la física.
-  3. Testear cada componente de forma aislada.
+El experimento solo sabe usar sensor.medir() e integrador.paso().
+No le importa qué tipo exacto son.
 
-Escenario: experimento de caída libre con distintos "sensores"
-(real/simulado) y distintos "integradores" (Euler/RK2).
-
-Tareas para el estudiante
--------------------------
-1. Crea `SensorRuidos` que añade errores aleatorios a los valores.
-2. Implementa `IntegradorRK4` y compara la precisión con Euler.
+Para practicar:
+1. Crea SensorRuido que añade errores aleatorios a los valores.
+2. Implementa IntegradorRK4 y compara la precisión con Euler.
 3. ¿Cuántas líneas hay que cambiar para usar el nuevo sensor?
-   (Respuesta esperada: 1 línea en main)
+   (pista: solo 1 en main)
 """
 
 from abc import ABC, abstractmethod
 import math
 
 
-# ---------------------------------------------------------------------------
-# Contratos (interfaces abstractas) — definen QUÉ se espera
-# ---------------------------------------------------------------------------
+# Contratos: solo definen qué métodos deben tener sensor e integrador
 
 class SensorAltitud(ABC):
-    """Contrato para cualquier sensor que mida altura."""
+    """Cualquier sensor de altura debe tener este método."""
 
     @abstractmethod
     def medir(self, altura_real: float) -> float:
@@ -40,19 +32,17 @@ class SensorAltitud(ABC):
 
 
 class IntegradorNumerica(ABC):
-    """Contrato para cualquier método de integración numérica."""
+    """Cualquier integrador debe saber avanzar el estado un paso dt."""
 
     @abstractmethod
     def paso(self, y: list[float], dydt_fn, dt: float) -> list[float]:
         """Avanza el estado y = [pos, vel] un paso dt."""
 
 
-# ---------------------------------------------------------------------------
-# Implementaciones de SensorAltitud
-# ---------------------------------------------------------------------------
+# Tres sensores con distintos tipos de error
 
 class SensorIdeal(SensorAltitud):
-    """Sensor perfecto: devuelve el valor real sin error."""
+    """Sin ruido ni error. Útil como referencia."""
 
     def medir(self, altura_real: float) -> float:
         return altura_real
@@ -61,7 +51,7 @@ class SensorIdeal(SensorAltitud):
 
 
 class SensorGPS(SensorAltitud):
-    """Sensor GPS con resolución ±0.5 m (redondea a la resolución)."""
+    """GPS real: redondea al múltiplo de 0.5 m más cercano."""
 
     RESOLUCION = 0.5  # m
 
@@ -72,25 +62,23 @@ class SensorGPS(SensorAltitud):
 
 
 class SensorBarometrico(SensorAltitud):
-    """Sensor barométrico: introduce drift lineal de 0.1 m/s."""
+    """Barómetro con deriva: se equivoca cada vez más con el tiempo."""
 
     def __init__(self):
         self._t = 0.0
 
     def medir(self, altura_real: float) -> float:
-        lectura = altura_real + 0.1 * self._t   # drift con el tiempo
+        lectura = altura_real + 0.1 * self._t   # el error crece a medida que pasa el tiempo
         self._t += 0.01
         return lectura
 
     def __repr__(self): return "SensorBarometrico(drift=0.1m/s)"
 
 
-# ---------------------------------------------------------------------------
-# Implementaciones de IntegradorNumerica
-# ---------------------------------------------------------------------------
+# Dos integradores numéricos: más simple vs. más preciso
 
 class IntegradorEuler(IntegradorNumerica):
-    """Método de Euler (1.er orden): y(t+dt) = y(t) + f(y,t)·dt."""
+    """El método más simple. Fácil de entender pero acumula error."""
 
     def paso(self, y: list[float], dydt_fn, dt: float) -> list[float]:
         derivadas = dydt_fn(y)
@@ -100,7 +88,7 @@ class IntegradorEuler(IntegradorNumerica):
 
 
 class IntegradorRK2(IntegradorNumerica):
-    """Método de Runge-Kutta de 2.º orden (Heun)."""
+    """Runge-Kutta de 2° orden: dos evaluaciones por paso, más preciso que Euler."""
 
     def paso(self, y: list[float], dydt_fn, dt: float) -> list[float]:
         k1 = dydt_fn(y)
@@ -111,15 +99,13 @@ class IntegradorRK2(IntegradorNumerica):
     def __repr__(self): return "IntegradorRK2(orden=2)"
 
 
-# ---------------------------------------------------------------------------
-# Experimento con inyección de dependencias
-# ---------------------------------------------------------------------------
+# El experimento no sabe ni le importa qué sensor o integrador recibe
 
 class ExperimentoCaidaLibre:
-    """Simula una caída libre con sensor e integrador inyectados.
+    """Simula la caída libre usando el sensor e integrador que le pasen.
 
-    La clase no sabe qué tipo concreto de sensor o integrador recibe;
-    sólo usa los contratos (medir / paso).
+    No tiene preferencia por ninguno en particular. Solo llama
+    sensor.medir() e integrador.paso().
     """
 
     G = 9.8   # m/s²
@@ -129,17 +115,17 @@ class ExperimentoCaidaLibre:
                  integrador: IntegradorNumerica,
                  dt: float = 0.05):
         self.h0         = altura_inicial
-        self._sensor    = sensor        # inyectado
-        self._integrador = integrador   # inyectado
+        self._sensor    = sensor        # viene de afuera
+        self._integrador = integrador   # viene de afuera
         self.dt         = dt
 
     def _derivadas(self, estado: list[float]) -> list[float]:
-        """dh/dt = v,   dv/dt = -g."""
+        """La física: posición cambia con velocidad, velocidad con gravedad."""
         _, v = estado
         return [v, -self.G]
 
     def solucion_analitica(self, t: float) -> float:
-        """h(t) = h₀ − ½g·t²."""
+        """Resultado exacto para comparar con la aproximación numérica."""
         return self.h0 - 0.5 * self.G * t**2
 
     def ejecutar(self, tiempo_total: float) -> list[dict]:
@@ -150,7 +136,7 @@ class ExperimentoCaidaLibre:
 
         while estado[0] >= 0 and t <= tiempo_total:
             h_num  = estado[0]
-            h_med  = self._sensor.medir(h_num)   # ← usa el sensor inyectado
+            h_med  = self._sensor.medir(h_num)   # el sensor agrega su propio error
             h_real = self.solucion_analitica(t)
             error  = abs(h_num - h_real)
 
@@ -162,7 +148,6 @@ class ExperimentoCaidaLibre:
                 "error":  error,
             })
 
-            # ← usa el integrador inyectado
             estado = self._integrador.paso(estado, self._derivadas, self.dt)
             t     += self.dt
 
@@ -174,9 +159,7 @@ class ExperimentoCaidaLibre:
                 f"integrador={self._integrador})")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# Probamos distintas combinaciones de sensor + integrador
 
 def mostrar_resultados(experimento: ExperimentoCaidaLibre,
                        registros: list[dict], n_filas: int = 6) -> None:

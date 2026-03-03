@@ -1,32 +1,18 @@
 """
 Ejercicio 1 — Multihilos: Lectura paralela de sensores de temperatura
 ======================================================================
-Conceptos: threading.Thread, time.sleep, listas compartidas, comparación
-           secuencial vs. concurrente.
+Cada sensor tarda un tiempo distinto en estabilizarse. Leerlos en
+secuencia toma la suma de todos los delays; con hilos se leen en
+paralelo y el tiempo total se reduce al del sensor más lento.
 
-Contexto físico
----------------
-En un experimento colocamos sensores de temperatura en distintos puntos
-de un material. Cada sensor tarda un tiempo diferente en estabilizarse
-y devolver su lectura (proceso de equilibrio térmico con el entorno).
-Hacerlo de forma secuencial llevaría la suma de todos esos tiempos;
-con hilos podemos leer todos en paralelo y reducir la espera al tiempo
-del sensor más lento.
-
-Diagrama
---------
   Sensor 1 ─── delay 1 s ──► T = 23.4 °C ─┐
   Sensor 2 ─── delay 3 s ──► T = 31.7 °C ─┤─► resultados[]
   Sensor 3 ─── delay 2 s ──► T = 18.9 °C ─┘
-  ...
 
-Tareas para el estudiante
--------------------------
-1. Ejecuta el script y anota el tiempo secuencial vs. paralelo.
-2. Agrega un sensor extra con delay = 4 s y observa cómo cambia
-   el tiempo total paralelo (pista: debería quedarse igual al anterior
-   si ningún otro sensor supera los 3 s).
-3. ¿Por qué el tiempo paralelo ideal es igual al del sensor más lento?
+Para practicar:
+1. Ejecuta y anota el tiempo secuencial vs. paralelo.
+2. Agrega un sensor con delay = 4 s. ¿Cómo cambia el tiempo paralelo?
+3. ¿Por qué el tiempo ideal es el del sensor más lento?
 """
 
 import threading
@@ -34,9 +20,7 @@ import time
 import random
 
 
-# ---------------------------------------------------------------------------
-# Datos de los sensores
-# ---------------------------------------------------------------------------
+# sensores con su ubicación y tiempo de estabilización
 
 SENSORES = [
     {"id": 1, "ubicacion": "Centro",        "delay": 1.0},
@@ -49,9 +33,7 @@ SENSORES = [
 T_AMBIENTE = 20.0  # °C
 
 
-# ---------------------------------------------------------------------------
-# Tarea de un hilo: leer un sensor
-# ---------------------------------------------------------------------------
+# esta función la ejecuta cada hilo: espera y luego guarda la lectura
 
 def leer_sensor(sensor: dict, resultados: list) -> None:
     """Simula la lectura de un sensor de temperatura.
@@ -81,9 +63,7 @@ def leer_sensor(sensor: dict, resultados: list) -> None:
           f"T = {temperatura:.2f} °C  (delay = {delay} s)")
 
 
-# ---------------------------------------------------------------------------
-# Lectura SECUENCIAL (línea de base)
-# ---------------------------------------------------------------------------
+# versión secuencial: un sensor a la vez, toma la suma de todos los delays
 
 def medir_secuencial(sensores: list) -> tuple:
     resultados = []
@@ -93,9 +73,7 @@ def medir_secuencial(sensores: list) -> tuple:
     return resultados, time.perf_counter() - inicio
 
 
-# ---------------------------------------------------------------------------
-# Lectura PARALELA con hilos
-# ---------------------------------------------------------------------------
+# versión paralela: un hilo por sensor, todos corren a la vez
 
 def medir_paralelo(sensores: list) -> tuple:
     resultados = []
@@ -118,9 +96,7 @@ def medir_paralelo(sensores: list) -> tuple:
     return resultados, time.perf_counter() - inicio
 
 
-# ---------------------------------------------------------------------------
-# Análisis del perfil de temperaturas
-# ---------------------------------------------------------------------------
+# estadísticas simples del perfil de temperaturas
 
 def analizar(resultados: list) -> None:
     temps = [r["temp_C"] for r in resultados]
@@ -135,9 +111,7 @@ def analizar(resultados: list) -> None:
     print(f"  Gradiente : {t_max - t_min:.2f} °C  (diferencia máx. entre zonas)")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     print("=" * 60)

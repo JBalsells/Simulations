@@ -1,11 +1,10 @@
 """
 Herencia — Ejemplo 1: Jerarquía de partículas subatómicas
 ==========================================================
-Conceptos OOP: herencia simple, herencia múltiple, super(),
-               override de métodos, isinstance / issubclass.
+Todas las partículas tienen masa y energía en reposo. Las cargadas
+también tienen carga eléctrica. Las neutras, no. Ese "también tiene"
+es exactamente para lo que sirve la herencia.
 
-Árbol de herencia
------------------
     Particula
     ├── ParticulaCargada  (agrega: carga eléctrica)
     │   ├── Electron
@@ -13,29 +12,18 @@ Conceptos OOP: herencia simple, herencia múltiple, super(),
     └── ParticulaNeutral
         └── Neutron
 
-Una subclase hereda todos los atributos y métodos de su padre
-y puede extenderlos o reemplazarlos (override).
-
-Tareas para el estudiante
--------------------------
-1. Agrega la clase `Muon` que hereda de `ParticulaCargada`
-   con masa = 1.883e-28 kg y carga = -1.
-2. Implementa un método `es_antipartícula_de(otra)` en
-   `ParticulaCargada` que devuelva True si misma masa,
-   carga opuesta.
-3. ¿Qué pasa si llamas `Particula.energia_reposo()` directamente?
+Para practicar:
+1. Agrega Muon que hereda de ParticulaCargada con masa = 1.883e-28 kg y carga = -1.
+2. Implementa es_antiparticula_de(otra) que devuelva True si misma masa, carga opuesta.
+3. ¿Qué pasa si llamas Particula.energia_reposo() directamente?
 """
 
-# ---------------------------------------------------------------------------
-# Constantes físicas
-# ---------------------------------------------------------------------------
+# necesaria para E = mc²
 
 C_LUZ = 2.998e8   # m/s — velocidad de la luz
 
 
-# ---------------------------------------------------------------------------
-# Clase base
-# ---------------------------------------------------------------------------
+# cualquier partícula tiene masa y puede calcular su energía en reposo
 
 class Particula:
     """Partícula puntual con masa en reposo."""
@@ -52,9 +40,7 @@ class Particula:
         return f"{self.nombre}(m={self.masa:.3e} kg)"
 
 
-# ---------------------------------------------------------------------------
-# Primera subclase: partícula con carga eléctrica
-# ---------------------------------------------------------------------------
+# añade carga eléctrica y fuerza de Coulomb
 
 class ParticulaCargada(Particula):
     """Partícula que porta carga eléctrica."""
@@ -82,9 +68,7 @@ class ParticulaCargada(Particula):
         return f"{self.nombre}(m={self.masa:.3e} kg, q={signo}{self.numero_carga}e)"
 
 
-# ---------------------------------------------------------------------------
-# Segunda subclase: partícula sin carga
-# ---------------------------------------------------------------------------
+# rama neutral: sin carga eléctrica neta
 
 class ParticulaNeutral(Particula):
     """Partícula sin carga eléctrica neta."""
@@ -97,9 +81,7 @@ class ParticulaNeutral(Particula):
         return False
 
 
-# ---------------------------------------------------------------------------
-# Subclases de ParticulaCargada
-# ---------------------------------------------------------------------------
+# electrón y protón: cada uno con su masa y comportamiento propio
 
 class Electron(ParticulaCargada):
     """Electrón: leptón de carga −1."""
@@ -128,9 +110,7 @@ class Proton(ParticulaCargada):
         return 8.775e-16
 
 
-# ---------------------------------------------------------------------------
-# Subclase de ParticulaNeutral
-# ---------------------------------------------------------------------------
+# neutrón: se desintegra solo cuando está fuera del núcleo
 
 class Neutron(ParticulaNeutral):
     """Neutrón: barión de carga 0."""
@@ -146,9 +126,7 @@ class Neutron(ParticulaNeutral):
         return "Protón + Electrón + Antineutrino_e"
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
+# --- demo ---
 
 if __name__ == "__main__":
     e  = Electron()

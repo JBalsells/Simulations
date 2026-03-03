@@ -1,35 +1,29 @@
 """
 Acoplamiento — Ejemplo 1: Acoplamiento fuerte vs. débil
 =========================================================
-Conceptos OOP: acoplamiento (cuánto depende una clase de otra),
-               inyección de dependencias, interfaces informales.
+El acoplamiento mide cuánto sabe una clase sobre las otras.
 
-Idea central
-------------
-El acoplamiento mide cuánto conoce una clase sobre los internos
-de otra. Un acoplamiento FUERTE crea dependencias difíciles de
-cambiar; uno DÉBIL permite reemplazar componentes sin tocar el resto.
+Cuando una clase crea y conoce exactamente sus dependencias (acoplamiento
+fuerte), es difícil cambiarlas sin tocar esa clase. Cuando recibe sus
+dependencias desde fuera (acoplamiento débil), podemos cambiarlas
+sin tocar nada.
 
-Escenario: simular el movimiento de un péndulo y mostrar resultados.
-  - Con acoplamiento fuerte:  Simulador crea y conoce el tipo exacto
-    del presentador (PrintPresenter).
-  - Con acoplamiento débil:   Simulador recibe cualquier objeto con
-    el método mostrar(datos), sin importar su clase.
+El ejemplo: un simulador de péndulo que muestra resultados.
+  - Versión fuerte: el simulador crea su propio presentador. No puedes
+    cambiarlo sin modificar el simulador.
+  - Versión débil: el presentador se pasa desde fuera. Puedes usar
+    texto, CSV, JSON o lo que sea, sin tocar el simulador.
 
-Tareas para el estudiante
--------------------------
-1. Agrega `PresentadorCSV` que guarde los resultados en un string CSV.
-2. Crea `PresentadorJSON` que produzca un diccionario con los datos.
-3. Cambia el presentador en tiempo de ejecución (en el mismo
-   simulador) y observa que no hay que tocar SimuladorPendulo.
+Para practicar:
+1. Agrega PresentadorJSON que devuelva un diccionario con los datos.
+2. Cambia el presentador en tiempo de ejecución y confirma que
+   SimuladorPendulo no necesita ningún cambio.
 """
 
 import math
 
 
-# ===========================================================================
-# ACOPLAMIENTO FUERTE — el simulador sabe exactamente con quién habla
-# ===========================================================================
+# --- ACOPLAMIENTO FUERTE: el simulador decide cómo mostrar los datos ---
 
 class PresentadorImpresiónFuerte:
     """Muestra resultados sólo por pantalla."""
@@ -40,10 +34,9 @@ class PresentadorImpresiónFuerte:
 
 
 class SimuladorPenduloAcoplado:
-    """⚠ FUERTE ACOPLAMIENTO: crea el presentador internamente.
+    """⚠ Ejemplo de lo que NO se debe hacer: el presentador está hardcodeado.
 
-    Problema: si quieres cambiar a CSV, debes modificar ESTA clase.
-    No puedes reutilizarla con otro tipo de presentador.
+    Para usar CSV o cualquier otra salida, habría que editar esta clase.
     """
 
     G = 9.8
@@ -53,7 +46,7 @@ class SimuladorPenduloAcoplado:
         self.theta = theta0
         self.omega = 0.0
         self.dt    = dt
-        # Acoplamiento fuerte: instancia interna fija
+        # el presentador está fijo aquí adentro, no hay forma de cambiarlo
         self._presentador = PresentadorImpresiónFuerte()
 
     def simular(self, n_pasos: int) -> None:
@@ -66,9 +59,7 @@ class SimuladorPenduloAcoplado:
             self._presentador.mostrar(t, self.theta, self.omega)
 
 
-# ===========================================================================
-# ACOPLAMIENTO DÉBIL — el simulador acepta cualquier presentador
-# ===========================================================================
+# --- ACOPLAMIENTO DÉBIL: el simulador no sabe ni le importa qué presentador recibe ---
 
 class PresentadorTexto:
     """Presentador 1: imprime resultados con formato tabla."""
@@ -112,10 +103,10 @@ class PresentadorEnergia:
 
 
 class SimuladorPendulo:
-    """Acoplamiento débil: acepta CUALQUIER objeto con método mostrar(dict).
+    """Solo sabe simular el péndulo. Cómo mostrar los datos es problema del presentador.
 
-    Para cambiar cómo se presentan los datos basta pasar otro presentador;
-    esta clase no necesita modificarse jamás.
+    Para cambiar la salida basta pasar otro objeto con mostrar(dict).
+    Este simulador no necesita tocarse nunca.
     """
 
     G = 9.8
@@ -127,7 +118,7 @@ class SimuladorPendulo:
         self.dt    = dt
 
     def simular(self, n_pasos: int, presentador) -> None:
-        """Ejecuta la simulación y delega la presentación al presentador."""
+        """Corre la simulación y le pasa cada resultado al presentador."""
         t = 0.0
         for _ in range(n_pasos):
             alpha       = -(self.G / self.L) * math.sin(self.theta)
@@ -143,9 +134,7 @@ class SimuladorPendulo:
             presentador.mostrar(datos)
 
 
-# ===========================================================================
-# Programa principal
-# ===========================================================================
+# El mismo simulador con tres presentadores distintos, sin tocar nada
 
 if __name__ == "__main__":
     L      = 1.0    # m

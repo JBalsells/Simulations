@@ -1,40 +1,31 @@
 """
 Agregación — Ejemplo 1: Sistema estelar
 ========================================
-Conceptos OOP: agregación ("usa/contiene"), ciclo de vida independiente,
-               diferencia clave con composición.
+En la agregación, el contenedor "tiene" objetos, pero esos objetos
+pueden existir por su cuenta sin él.
 
-Idea central
-------------
-La agregación es una relación TIENE-UN donde las partes PUEDEN EXISTIR
-DE FORMA INDEPENDIENTE del contenedor.
+Si eliminamos el sistema solar, los planetas y la estrella siguen
+existiendo como objetos de Python. Júpiter podría ser agregado a
+otro catálogo sin problema.
 
-    SistemaEstelar ──(agrega)──► Estrella  (existe por sí sola)
-                   ──(agrega)──► [Planeta, Planeta, ...]
+Eso es lo que lo diferencia de la composición: en composición,
+si el todo desaparece, las partes también.
 
-La diferencia con composición:
-  - Composición: si destruyes el Átomo, el Núcleo desaparece.
-  - Agregación:  si destruyes el SistemaEstelar, los Planeta y Estrella
-                 siguen existiendo (pueden pertenecer a otro catálogo).
-
-Tareas para el estudiante
--------------------------
-1. Agrega el método `agregar_luna(planeta_idx, luna)` al sistema.
-2. Implementa `planetas_habitables()` que retorne los planetas
-   con temperatura entre −50 y 60 °C.
+Para practicar:
+1. Agrega agregar_luna(planeta_idx, luna) al sistema.
+2. Implementa planetas_habitables() que devuelva los planetas
+   con temperatura de equilibrio entre -50 y 60 °C.
 3. ¿Puede un mismo planeta pertenecer a dos sistemas a la vez?
-   ¿Qué implicaría eso para el modelado?
+   ¿Qué implicaría eso?
 """
 
 import math
 
 
-# ---------------------------------------------------------------------------
-# Clases independientes (pueden existir sin el sistema)
-# ---------------------------------------------------------------------------
+# estas clases se crean solas, el sistema solo las referencia
 
 class Estrella:
-    """Estrella que puede pertenecer o no a un sistema."""
+    """Una estrella existe por sí sola, con o sin sistema."""
 
     SIGMA = 5.67e-8  # W m⁻² K⁻⁴
 
@@ -64,7 +55,7 @@ class Estrella:
 
 
 class Planeta:
-    """Planeta que puede pertenecer o no a un sistema estelar."""
+    """Un planeta también existe independientemente de cualquier sistema."""
 
     G = 6.674e-11  # m³ kg⁻¹ s⁻²
     UA = 1.496e11  # m
@@ -103,27 +94,24 @@ class Planeta:
                 f"lunas={self.n_lunas})")
 
 
-# ---------------------------------------------------------------------------
-# Clase que agrega: Sistema Estelar
-# ---------------------------------------------------------------------------
+# El sistema no crea sus partes, las recibe ya hechas
 
 class SistemaEstelar:
-    """Colección de una estrella y sus planetas orbitantes.
+    """Agrupa una estrella y planetas que ya existen.
 
-    Recibe objetos ya creados (no los crea): si el sistema desaparece,
-    estrella y planetas siguen existiendo como objetos Python.
+    Si borramos el sistema, la estrella y los planetas siguen vivos.
     """
 
     def __init__(self, nombre: str, estrella: Estrella):
         self.nombre    = nombre
-        self._estrella = estrella   # referencia, no copia
+        self._estrella = estrella   # solo guardamos la referencia
         self._planetas: list[Planeta] = []
 
     def agregar_planeta(self, planeta: Planeta) -> None:
         self._planetas.append(planeta)
 
     def retirar_planeta(self, nombre: str) -> Planeta | None:
-        """Retira un planeta del sistema (el objeto sigue existiendo)."""
+        """Saca un planeta de este sistema. El objeto sigue vivo, solo cambia de lista."""
         for i, p in enumerate(self._planetas):
             if p.nombre == nombre:
                 return self._planetas.pop(i)
@@ -140,7 +128,7 @@ class SistemaEstelar:
                 if inner <= p.semieje_mayor_ua <= outer]
 
     def masa_total(self) -> float:
-        """Masa del sistema: estrella + planetas (kg)."""
+        """Suma la masa de la estrella más todos los planetas."""
         return self._estrella.masa + sum(p.masa for p in self._planetas)
 
     def resumen(self) -> None:
@@ -159,12 +147,8 @@ class SistemaEstelar:
                   f"{T:>10.1f} {zh:>12}")
 
 
-# ---------------------------------------------------------------------------
-# Programa principal
-# ---------------------------------------------------------------------------
-
 if __name__ == "__main__":
-    # Crear objetos independientes
+    # primero creamos cada objeto por separado
     sol = Estrella("Sol", masa=1.989e30, radio=6.96e8, temperatura=5_778)
 
     mercurio = Planeta("Mercurio", 3.3e23, 2.44e6, semieje_mayor_ua=0.387, velocidad_orbital=47_870)
@@ -176,7 +160,7 @@ if __name__ == "__main__":
     luna = Planeta("Luna", 7.34e22, 1.74e6, semieje_mayor_ua=0.00257, velocidad_orbital=1_022)
     tierra.agregar_luna(luna)
 
-    # Construir el sistema
+    # después los pasamos al sistema
     sistema_solar = SistemaEstelar("Sistema Solar", sol)
     for planeta in [mercurio, venus, tierra, marte, jupiter]:
         sistema_solar.agregar_planeta(planeta)
@@ -187,14 +171,14 @@ if __name__ == "__main__":
 
     sistema_solar.resumen()
 
-    # Los planetas existen de forma independiente del sistema
+    # clave: retirar del sistema no destruye el objeto
     print(f"\n--- Los objetos siguen existiendo tras retirarse ---")
     jupiter_retirado = sistema_solar.retirar_planeta("Júpiter")
     print(f"  Júpiter fuera del sistema: {jupiter_retirado}")
     print(f"  Sistema ahora: {sistema_solar.n_planetas} planetas")
     print(f"  Júpiter sigue siendo: {jupiter}")   # el objeto persiste
 
-    # Segundo sistema que reusa el mismo objeto planeta
+    # el mismo objeto puede estar en múltiples contenedores a la vez
     print(f"\n--- Usar Júpiter en un segundo catálogo ---")
     catalogo_gigantes = SistemaEstelar("Catálogo Gigantes", sol)
     catalogo_gigantes.agregar_planeta(jupiter_retirado)
