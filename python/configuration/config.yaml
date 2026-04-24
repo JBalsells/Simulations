@@ -1,0 +1,48 @@
+app:
+  nombre: "Sistema de Reportes"
+  version: "2.1.0"
+  debug: true
+  puerto: 8080
+  zona_horaria: "America/Guatemala"
+
+base_de_datos:
+  host: localhost
+  puerto: 5432
+  nombre: reportes_db
+  usuario: admin
+  pool:
+    min_conexiones: 2
+    max_conexiones: 20
+    timeout_segundos: 30
+
+reportes:
+  directorio_salida: "./salida"
+  formatos_permitidos:
+    - pdf
+    - csv
+    - excel
+  max_filas_por_reporte: 50000
+  incluir_graficas: true
+  paleta_colores:
+    primario: "#2563EB"
+    secundario: "#16A34A"
+    alerta: "#DC2626"
+
+notificaciones:
+  email:
+    habilitado: true
+    smtp_host: smtp.gmail.com
+    smtp_puerto: 587
+    remitente: "reportes@empresa.com"
+    destinatarios_defecto:
+      - "gerencia@empresa.com"
+      - "analistas@empresa.com"
+  slack:
+    habilitado: false
+    canal: "#alertas"
+
+logging:
+  nivel: INFO        # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  archivo: logs/app.log
+  max_mb: 10
+  backups: 5

@@ -1,0 +1,49 @@
+{
+  "api": {
+    "nombre": "API de Inventario",
+    "version": "3.0.0",
+    "base_url": "/api/v3",
+    "puerto": 9000,
+    "cors_origins": ["http://localhost:3000", "https://app.empresa.com"]
+  },
+  "autenticacion": {
+    "algoritmo": "HS256",
+    "expiracion_minutos": 60,
+    "refresh_expiracion_dias": 7,
+    "intentos_maximos": 5,
+    "bloqueo_minutos": 15
+  },
+  "base_de_datos": {
+    "host": "localhost",
+    "puerto": 5432,
+    "nombre": "inventario_db",
+    "usuario": "api_user",
+    "ssl": false,
+    "pool": {
+      "min": 5,
+      "max": 50
+    }
+  },
+  "cache": {
+    "backend": "redis",
+    "host": "localhost",
+    "puerto": 6379,
+    "ttl_segundos": 300,
+    "prefijo": "inv:"
+  },
+  "inventario": {
+    "stock_minimo_alerta": 10,
+    "moneda": "GTQ",
+    "impuesto_porcentaje": 12,
+    "categorias": ["electronica", "ropa", "alimentos", "hogar", "deportes"],
+    "paginacion": {
+      "items_por_pagina": 25,
+      "max_items": 200
+    }
+  },
+  "archivos": {
+    "directorio_uploads": "./uploads",
+    "max_tamano_mb": 5,
+    "tipos_permitidos": ["jpg", "jpeg", "png", "webp", "pdf"]
+  }
+}

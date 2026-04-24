@@ -1,0 +1,14 @@
+REPORTE: ventas_abril
+Generado: 2026-04-20 21:18:43
+App: Sistema de Reportes v2.1.0
+Color primario: #2563EB
+Incluye gráficas: True
+----------------------------------------
+Total de registros: 6
+
+  1. {'producto': 'Laptop', 'cantidad': 5, 'total': 15000.0}
+  2. {'producto': 'Mouse', 'cantidad': 20, 'total': 600.0}
+  3. {'producto': 'Monitor', 'cantidad': 3, 'total': 4500.0}
+  4. {'producto': 'Teclado', 'cantidad': 12, 'total': 1200.0}
+  5. {'producto': 'Auriculares', 'cantidad': 8, 'total': 2400.0}
+  ... y 1 registros más

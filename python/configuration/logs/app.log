@@ -1,0 +1,8 @@
+2026-04-20 21:18:43,245 [INFO] reportes: Iniciando Sistema de Reportes v2.1.0
+2026-04-20 21:18:43,245 [INFO] reportes: Modo debug: True
+2026-04-20 21:18:43,245 [INFO] reportes: Conectando a BD: localhost:5432/reportes_db (pool: 2-20)
+2026-04-20 21:18:43,245 [INFO] reportes.generador: Generando reporte 'ventas_abril' en formato csv
+2026-04-20 21:18:43,245 [INFO] reportes.generador: Reporte guardado en: salida/ventas_abril_20260420_211843.csv
+2026-04-20 21:18:43,245 [INFO] reportes.generador: Notificación enviada a ['gerencia@empresa.com', 'analistas@empresa.com'] desde reportes@empresa.com
+2026-04-20 21:18:43,245 [INFO] reportes.generador: Generando reporte 'test' en formato docx
+2026-04-20 21:18:43,245 [WARNING] reportes: Error esperado: Formato 'docx' no permitido. Opciones: ['pdf', 'csv', 'excel']
