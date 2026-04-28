@@ -291,7 +291,7 @@ Una metodología de desarrollo donde primero escribes los tests, y luego el cód
 
 ---
 
-## BDD — Behavior Driven Development
+## BDD — Behaviour Driven Development
 
 Extensión del TDD donde los tests se escriben en **lenguaje natural** entendible por el negocio.
 

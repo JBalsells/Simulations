@@ -7,8 +7,8 @@ Ejecutar con: pytest tests.py -v
 
 import pytest
 
-
 # ── Implementaciones ──────────────────────────────────────────────────────────
+
 
 def bubble_sort(lista: list) -> list:
     arr = lista[:]
@@ -70,33 +70,41 @@ def _merge(izquierda: list, derecha: list) -> list:
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def lista_normal():
     return [5, 3, 8, 1, 9, 2, 7, 4, 6]
+
 
 @pytest.fixture
 def lista_ya_ordenada():
     return [1, 2, 3, 4, 5]
 
+
 @pytest.fixture
 def lista_orden_inverso():
     return [5, 4, 3, 2, 1]
+
 
 @pytest.fixture
 def lista_con_duplicados():
     return [4, 2, 4, 1, 3, 2]
 
+
 @pytest.fixture
 def lista_un_elemento():
     return [42]
+
 
 @pytest.fixture
 def lista_vacia():
     return []
 
+
 @pytest.fixture
 def lista_negativos():
     return [-3, -1, -7, -2, -5]
+
 
 @pytest.fixture
 def lista_mixta():
@@ -158,6 +166,7 @@ class TestOrdenamientoGeneral:
 
     def test_lista_grande(self, algoritmo):
         import random
+
         lista = random.sample(range(1000), 500)
         resultado = algoritmo(lista)
         assert resultado == sorted(lista)
@@ -177,6 +186,7 @@ class TestOrdenamientoGeneral:
 
 
 # ── Tests específicos de Merge Sort ──────────────────────────────────────────
+
 
 class TestMergeSortEspecifico:
 
@@ -199,6 +209,7 @@ class TestMergeSortEspecifico:
 
 # ── Tests de tipo de datos / edge cases ──────────────────────────────────────
 
+
 class TestTiposDeDatos:
 
     def test_bubble_sort_strings(self):
@@ -215,6 +226,7 @@ class TestTiposDeDatos:
 
 # ── Tests de invariantes (propiedades que siempre deben cumplirse) ────────────
 
+
 class TestInvariantesDeOrdenamiento:
     """
     Property-based thinking sin hypothesis: verificamos propiedades
@@ -224,9 +236,9 @@ class TestInvariantesDeOrdenamiento:
     def test_resultado_esta_ordenado(self, lista_normal):
         resultado = merge_sort(lista_normal)
         for i in range(len(resultado) - 1):
-            assert resultado[i] <= resultado[i + 1], (
-                f"No ordenado en posición {i}: {resultado[i]} > {resultado[i+1]}"
-            )
+            assert (
+                resultado[i] <= resultado[i + 1]
+            ), f"No ordenado en posición {i}: {resultado[i]} > {resultado[i+1]}"
 
     def test_longitud_se_preserva(self, lista_con_duplicados):
         assert len(bubble_sort(lista_con_duplicados)) == len(lista_con_duplicados)
