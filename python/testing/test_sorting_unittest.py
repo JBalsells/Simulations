@@ -1,7 +1,24 @@
+"""
+tests:
+a instalar: pip install pytest
+testing: pytest test_sorting_unittest.py
+
+chequeos estaticos
+a instalar: pip install mypy
+static checks: python3 -m mypy test_sorting_unittest.py  --strict
+
+
+organizacion de codigo:
+a instalar:     pip install black
+                pip install isort
+
+black .
+isort .
+
+"""
+
 from typing import Any, Callable
 from unittest import TestCase
-
-# ── Implementaciones ──────────────────────────────────────────────────────────
 
 SortFn = Callable[[list[Any]], list[Any]]
 
@@ -29,6 +46,7 @@ def selection_sort(lista: list[Any]) -> list[Any]:
 
 
 def insertion_sort(lista: list[Any]) -> list[Any]:
+
     arr = lista[:]
     for i in range(1, len(arr)):
         clave = arr[i]
@@ -64,12 +82,12 @@ def _merge(izquierda: list[Any], derecha: list[Any]) -> list[Any]:
     return resultado
 
 
-# ── Cambia esta línea para probar cualquier algoritmo de ordenamiento ─────────
-ALGORITMO: SortFn = bubble_sort
+"""_summary_
+"""
+# ALGORITMO: SortFn = bubble_sort
 # ALGORITMO = selection_sort
 # ALGORITMO = insertion_sort
-# ALGORITMO = merge_sort
-# -----------------------------------------------------------------------------
+ALGORITMO = merge_sort
 
 
 class SortingAlgorithmTest(TestCase):
@@ -85,7 +103,7 @@ class SortingAlgorithmTest(TestCase):
 
     def test_lista_normal(self) -> None:
         resultado = self.sort(self.lista_normal)
-        self.assertEqual(resultado, sorted(self.lista_normal))
+        self.assertEqual(resultado, [1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def test_lista_ya_ordenada_no_cambia(self) -> None:
         resultado = self.sort(self.lista_ordenada)
