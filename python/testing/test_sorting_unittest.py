@@ -84,16 +84,16 @@ def _merge(izquierda: list[Any], derecha: list[Any]) -> list[Any]:
 
 """_summary_
 """
-# ALGORITMO: SortFn = bubble_sort
-# ALGORITMO = selection_sort
-# ALGORITMO = insertion_sort
-ALGORITMO = merge_sort
+#ALGORITMO = bubble_sort
+#ALGORITMO = selection_sort
+#ALGORITMO = insertion_sort
+#ALGORITMO = merge_sort
 
 
 class SortingAlgorithmTest(TestCase):
 
     def setUp(self) -> None:
-        self.sort: SortFn = ALGORITMO
+        self.sort = list[bubble_sort, selection_sort, insertion_sort, merge_sort]
         self.lista_normal = [5, 3, 8, 1, 9, 2, 7, 4, 6]
         self.lista_ordenada = [1, 2, 3, 4, 5]
         self.lista_inversa = [5, 4, 3, 2, 1]
@@ -102,8 +102,9 @@ class SortingAlgorithmTest(TestCase):
         self.lista_mixta = [0, -3, 5, -1, 2]
 
     def test_lista_normal(self) -> None:
-        resultado = self.sort(self.lista_normal)
-        self.assertEqual(resultado, [1, 2, 3, 4, 5, 6, 7, 8, 9])
+        for alg in self.sort:
+            resultado = alg(self.lista_normal)
+            self.assertEqual(resultado, [1, 2, 3, 4, 5, 6, 7, 8, 9])
 
     def test_lista_ya_ordenada_no_cambia(self) -> None:
         resultado = self.sort(self.lista_ordenada)
